@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "230309315607",
+    "project_id": "omechat-7c75c",
+    "storage_bucket": "omechat-7c75c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:230309315607:android:30513f09c79ef963748852",
+        "android_client_info": {
+          "package_name": "com.example.omechat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcJWLrQpiIcozKcRJKnV-zIDtjTUxPNps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
