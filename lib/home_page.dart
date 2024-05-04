@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
       body: Center(
         child: ElevatedButton(
           onPressed: _signInAnonymously, // Call the function on press
-          child: const Text('Sign in Anonymously'), // Change button text
+          child: const Text('Start Chatting'), // Change button text
         ),
       ),
     );
