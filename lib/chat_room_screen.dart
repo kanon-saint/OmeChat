@@ -3,7 +3,9 @@ import 'home_page.dart';
 import 'loading_screen.dart';
 
 class ChatRoomScreen extends StatelessWidget {
-  const ChatRoomScreen({Key? key}) : super(key: key);
+  const ChatRoomScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

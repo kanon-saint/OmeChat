@@ -17,7 +17,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
   void initState() {
     super.initState();
     printCurrentUserUID(); // Print current user's UID
-    getUsersFromFirestore(); // Fetch all user IDs
   }
 
   @override
@@ -58,90 +57,99 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
       // Store current user's ID to Firestore
       await storeUserIDToFirestore(user.uid);
+
+      // Fetch all user IDs from Firestore
+      FirebaseFirestore.instance
+          .collection('users')
+          .get()
+          .then((querySnapshot) async {
+        List<String> allUserIds = [];
+        querySnapshot.docs.forEach((doc) {
+          allUserIds.add(doc.id);
+        });
+
+        // Shuffle the list of user IDs
+        allUserIds.shuffle();
+
+        // Pair up the users
+        List<List<String>> pairs = [];
+        for (int i = 0; i < allUserIds.length; i += 2) {
+          if (i + 1 < allUserIds.length) {
+            pairs.add([allUserIds[i], allUserIds[i + 1]]);
+          } else {
+            // If there's an odd number of users, handle the last one separately
+            pairs.add([allUserIds[i]]);
+          }
+        }
+
+        // Store pairs in Firestore with unique room IDs if both users have been paired
+        for (int i = 0; i < pairs.length; i++) {
+          List<String> pair = pairs[i];
+          if (pair.length == 2) {
+            String roomId = generateRoomId();
+            await FirebaseFirestore.instance
+                .collection('rooms')
+                .doc(roomId)
+                .set({
+              'roomID': roomId,
+              'occupant1': pair[0],
+              'occupant2': pair[1],
+            });
+            print('Pair $pair stored with Room ID $roomId in Firestore.');
+          }
+        }
+
+        // Check if the current user is in any room
+        await checkUserInRoom(user.uid);
+      }).catchError((error) {
+        print('Failed to fetch user IDs: $error');
+      });
     } else {
       // No user is signed in
       print('No user signed in.');
     }
   }
 
-  Future<void> storeUserIDToFirestore(String uid) async {
-    final firestoreInstance = FirebaseFirestore.instance;
-
-    // Create a collection reference
-    CollectionReference users = firestoreInstance.collection('users');
-
-    // Create a document reference using the user ID
-    DocumentReference userDocRef = users.doc(uid);
-
-    // Set the data to be stored in the document
-    await userDocRef.set({'uid': uid});
+  Future<void> checkUserInRoom(String userId) async {
+    QuerySnapshot roomSnapshot =
+        await FirebaseFirestore.instance.collection('rooms').get();
+    for (QueryDocumentSnapshot roomDoc in roomSnapshot.docs) {
+      List<String> occupants = [roomDoc['occupant1'], roomDoc['occupant2']];
+      if (occupants.contains(userId)) {
+        // User is in a room, navigate to chat room
+        print('User $userId is in a room.');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatRoomScreen(),
+          ),
+        );
+        return; // Exit the function after finding the user in a room
+      }
+    }
+    // If the user is not in any room, print a message and wait before checking again
+    print('User $userId is not in any room. Checking again in 5 seconds...');
+    // await Future.delayed(const Duration(seconds: 2)); // Wait for 5 seconds
+    await checkUserInRoom(userId); // Check again recursively
   }
 
-  void getUsersFromFirestore() async {
-    final firestoreInstance = FirebaseFirestore.instance;
-
-    // Create a collection reference
-    CollectionReference users = firestoreInstance.collection('users');
-
-    // Fetch all documents from the collection
-    QuerySnapshot querySnapshot = await users.get();
-
-    // Extract user IDs
-    List<String> ids = [];
-    querySnapshot.docs.forEach((doc) {
-      ids.add(doc['uid']);
-    });
-
-    // Shuffle the user IDs
-    ids.shuffle();
-
-    // Create pairs and store them in Firestore
-    await createAndStorePairs(ids);
-
-    // Navigate to the chat room
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => ChatRoomScreen()),
-    );
-  }
-
-  Future<void> createAndStorePairs(List<String> ids) async {
-    final firestoreInstance = FirebaseFirestore.instance;
-    final CollectionReference pairs = firestoreInstance.collection('pairs');
-    final CollectionReference users = firestoreInstance.collection('users');
-
-    // Determine the number of pairs
-    int numPairs = ids.length ~/ 2;
-
-    // Generate room IDs
-    List<String> roomIDs = List.generate(numPairs, (_) => generateRoomID());
-
-    // Create pairs
-    for (int i = 0; i < numPairs; i++) {
-      String roomID = roomIDs[i];
-      String userID1 = ids[2 * i];
-      String userID2 = ids[2 * i + 1];
-
-      // Store pair in Firestore
-      DocumentReference pairDocRef = await pairs.add({
-        'roomID': roomID,
-        'userIDs': [userID1, userID2],
-      });
-
-      // Remove user IDs from "users" collection
-      await users.doc(userID1).delete();
-      await users.doc(userID2).delete();
+  Future<void> storeUserIDToFirestore(String userId) async {
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({});
+      print('User ID $userId stored to Firestore successfully.');
+    } catch (error) {
+      print('Failed to store user ID to Firestore: $error');
     }
   }
 
-  String generateRoomID() {
-    // Generate a random room ID
-    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  String generateRoomId() {
+    // Generate a unique room ID
+    String roomId = '';
     final random = Random();
-    String roomID = '';
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     for (int i = 0; i < 6; i++) {
-      roomID += characters[random.nextInt(characters.length)];
+      roomId += chars[random.nextInt(chars.length)];
     }
-    return roomID;
+    return roomId;
   }
 }
