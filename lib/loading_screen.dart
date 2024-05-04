@@ -58,6 +58,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
       // Store current user's ID to Firestore
       await storeUserIDToFirestore(user.uid);
 
+      // Add a delay before fetching all user IDs from Firestore
+      // await Future.delayed(const Duration(seconds: 10));
+
       // Fetch all user IDs from Firestore
       FirebaseFirestore.instance
           .collection('users')
@@ -96,6 +99,15 @@ class _LoadingScreenState extends State<LoadingScreen> {
               'occupant2': pair[1],
             });
             print('Pair $pair stored with Room ID $roomId in Firestore.');
+
+            // Delete users from "users" collection
+            for (String userId in pair) {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(userId)
+                  .delete();
+              print('User $userId deleted from "users" collection.');
+            }
           }
         }
 
@@ -116,12 +128,18 @@ class _LoadingScreenState extends State<LoadingScreen> {
     for (QueryDocumentSnapshot roomDoc in roomSnapshot.docs) {
       List<String> occupants = [roomDoc['occupant1'], roomDoc['occupant2']];
       if (occupants.contains(userId)) {
-        // User is in a room, navigate to chat room
-        print('User $userId is in a room.');
+        // User is in a room, print room details and navigate to chat room
+        String roomId = roomDoc['roomID'];
+        print(
+            'User $userId is in a room with Room ID: $roomId and Occupants: $occupants.');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatRoomScreen(),
+            builder: (context) => ChatRoomScreen(
+              roomId: roomId,
+              occupants: occupants,
+              currentUserId: userId, // Pass the current user's ID
+            ),
           ),
         );
         return; // Exit the function after finding the user in a room

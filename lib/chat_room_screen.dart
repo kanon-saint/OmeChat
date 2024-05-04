@@ -1,62 +1,67 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
-import 'loading_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ChatRoomScreen extends StatelessWidget {
+class ChatRoomScreen extends StatefulWidget {
+  final String roomId;
+  final List<String> occupants;
+  final String currentUserId;
+
   const ChatRoomScreen({
     Key? key,
+    required this.roomId,
+    required this.occupants,
+    required this.currentUserId,
   }) : super(key: key);
+
+  @override
+  _ChatRoomScreenState createState() => _ChatRoomScreenState();
+}
+
+class _ChatRoomScreenState extends State<ChatRoomScreen> {
+  final TextEditingController _textController = TextEditingController();
+  late CollectionReference _messagesCollection;
+
+  @override
+  void initState() {
+    super.initState();
+    _messagesCollection = FirebaseFirestore.instance.collection('messages');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat Room'),
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.orange,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black,
-                backgroundColor: Colors.red,
-              ),
-              child: const Text('Stop'),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoadingScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black,
-                backgroundColor: Colors.green,
-              ),
-              child: const Text('Next'),
-            ),
-          ),
-        ],
+        title: Text('Chat Room - ${widget.roomId}'),
       ),
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                // Messages
-              ],
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _messagesCollection
+                  .where('roomId', isEqualTo: widget.roomId)
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  List<QueryDocumentSnapshot> messages =
+                      snapshot.data!.docs.reversed.toList();
+                  return ListView.builder(
+                    reverse: true,
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      var message = messages[index].data()!;
+                      return ListTile(
+                        title: Text('sender'),
+                        subtitle: Text('content'),
+                      );
+                    },
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
             ),
           ),
           _buildMessageInputField(),
@@ -68,7 +73,7 @@ class ChatRoomScreen extends StatelessWidget {
   Widget _buildMessageInputField() {
     return Container(
       padding: const EdgeInsets.all(8.0),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
           top: BorderSide(color: Colors.grey),
         ),
@@ -77,20 +82,38 @@ class ChatRoomScreen extends StatelessWidget {
         children: [
           Expanded(
             child: TextField(
-              decoration: const InputDecoration(
+              controller: _textController,
+              decoration: InputDecoration(
                 hintText: 'Type your message...',
               ),
             ),
           ),
           IconButton(
             onPressed: () {
-              // Implement send message functionality here
+              _sendMessage();
             },
-            icon: const Icon(Icons.send),
+            icon: Icon(Icons.send),
             color: Colors.blue,
           ),
         ],
       ),
     );
+  }
+
+  void _sendMessage() {
+    String message = _textController.text.trim();
+    if (message.isNotEmpty) {
+      _messagesCollection.add({
+        'roomId': widget.roomId,
+        'sender': widget.currentUserId,
+        'content': message,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      }).then((_) {
+        _textController.clear();
+      }).catchError((error) {
+        // Handle error
+        print('Failed to send message: $error');
+      });
+    }
   }
 }

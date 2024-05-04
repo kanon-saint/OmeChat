@@ -57,6 +57,7 @@ class DefaultFirebaseOptions {
     appId: '1:230309315607:android:30513f09c79ef963748852',
     messagingSenderId: '230309315607',
     projectId: 'omechat-7c75c',
+    databaseURL: 'https://omechat-7c75c-default-rtdb.firebaseio.com',
     storageBucket: 'omechat-7c75c.appspot.com',
   );
 
