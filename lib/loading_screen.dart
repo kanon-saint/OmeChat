@@ -34,7 +34,25 @@ class _LoadingScreenState extends State<LoadingScreen> {
             CircularProgressIndicator(),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                // Get current user
+                User? user = FirebaseAuth.instance.currentUser;
+                if (user != null) {
+                  // User is signed in
+                  String userId = user.uid;
+                  // Delete user from "users" collection
+                  try {
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .delete();
+                    print('User $userId deleted from "users" collection.');
+                  } catch (error) {
+                    print(
+                        'Failed to delete user $userId from "users" collection: $error');
+                  }
+                }
+                // Navigate back to the home page
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => HomePage()),

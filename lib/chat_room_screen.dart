@@ -44,7 +44,9 @@ class ChatRoomScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                await _deleteCurrentUserFromRoom();
+
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LoadingScreen()),
@@ -186,6 +188,8 @@ class ChatRoomScreen extends StatelessWidget {
           if (occupant1 == "" || occupant2 == "") {
             // Delete the document at /rooms/lrwu27
             await roomDocRef.delete();
+            // Delete the subcollection
+            await deleteSubcollection(roomDocRef.collection('messages'));
             print('Room document deleted: $roomId');
           }
 
@@ -209,5 +213,17 @@ class ChatRoomScreen extends StatelessWidget {
     } catch (error) {
       print("Error deleting current user from room: $error");
     }
+  }
+
+  Future<void> deleteSubcollection(CollectionReference collectionRef) async {
+    final QuerySnapshot snapshot = await collectionRef.get();
+    final List<Future<void>> futures = [];
+
+    for (DocumentSnapshot doc in snapshot.docs) {
+      futures.add(doc.reference.delete());
+    }
+
+    await Future.wait(futures);
+    print('Subcollection deleted.');
   }
 }
