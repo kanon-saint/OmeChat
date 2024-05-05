@@ -183,18 +183,22 @@ class ChatRoomScreen extends StatelessWidget {
               data.containsKey('occupant2') ? data['occupant2'] : null;
 
           // Check if both occupants are null and delete the room document if so
-          if (occupant1 == null || occupant2 == null) {
+          if (occupant1 == "" || occupant2 == "") {
             // Delete the document at /rooms/lrwu27
             await roomDocRef.delete();
             print('Room document deleted: $roomId');
           }
 
+          // Delete current user from the room
           if (occupant1 == currentUserId) {
-            await roomDocRef.update({'occupant1': FieldValue.delete()});
+            await roomDocRef.update({'occupant1': ""});
+            print('Current user deleted from occupant1 field.');
           } else if (occupant2 == currentUserId) {
-            await roomDocRef.update({'occupant2': FieldValue.delete()});
+            await roomDocRef.update({'occupant2': ""});
+            print('Current user deleted from occupant2 field.');
           } else {
             print('Current user is not an occupant of this room.');
+            return;
           }
         } else {
           print('No data found in the room document.');

@@ -58,9 +58,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
       // Store current user's ID to Firestore
       await storeUserIDToFirestore(user.uid);
 
-      // Add a delay before fetching all user IDs from Firestore
-      // await Future.delayed(const Duration(seconds: 10));
-
       // Fetch all user IDs from Firestore
       FirebaseFirestore.instance
           .collection('users')
@@ -70,9 +67,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
         querySnapshot.docs.forEach((doc) {
           allUserIds.add(doc.id);
         });
-
-        // Shuffle the list of user IDs
-        allUserIds.shuffle();
 
         // Pair up the users
         List<List<String>> pairs = [];
