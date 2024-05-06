@@ -61,44 +61,53 @@ class ChatRoomScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder(
-              stream: FirebaseFirestore.instance
-                  .collection('rooms')
-                  .doc(roomId)
-                  .collection('messages')
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
+      body: PopScope(
+        canPop: true,
+        onPopInvoked: (bool didPop) {
+          if (didPop) {
+            _deleteCurrentUserFromRoom();
+          }
+        },
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('rooms')
+                    .doc(roomId)
+                    .collection('messages')
+                    .orderBy('timestamp', descending: true)
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
 
-                return ListView(
-                  reverse: true, // To display the latest messages at the bottom
-                  padding: const EdgeInsets.all(16.0),
-                  children:
-                      snapshot.data!.docs.map((DocumentSnapshot document) {
-                    Map<String, dynamic> data =
-                        document.data() as Map<String, dynamic>;
-                    return _buildMessage(
-                      isCurrentUser: data['userId'] == currentUserId,
-                      message: data['message'],
-                    );
-                  }).toList(),
-                );
-              },
+                  return ListView(
+                    reverse:
+                        true, // To display the latest messages at the bottom
+                    padding: const EdgeInsets.all(16.0),
+                    children:
+                        snapshot.data!.docs.map((DocumentSnapshot document) {
+                      Map<String, dynamic> data =
+                          document.data() as Map<String, dynamic>;
+                      return _buildMessage(
+                        isCurrentUser: data['userId'] == currentUserId,
+                        message: data['message'],
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
             ),
-          ),
-          _buildMessageInputField(),
-        ],
+            _buildMessageInputField(),
+          ],
+        ),
       ),
     );
   }

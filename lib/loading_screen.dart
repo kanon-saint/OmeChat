@@ -27,40 +27,48 @@ class _LoadingScreenState extends State<LoadingScreen> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.orange,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                // Get current user
-                User? user = FirebaseAuth.instance.currentUser;
-                if (user != null) {
-                  // User is signed in
-                  String userId = user.uid;
-                  // Delete user from "users" collection
-                  try {
-                    await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(userId)
-                        .delete();
-                    print('User $userId deleted from "users" collection.');
-                  } catch (error) {
-                    print(
-                        'Failed to delete user $userId from "users" collection: $error');
+      body: PopScope(
+        canPop: true,
+        onPopInvoked: (bool didPop) {
+          if (didPop) {
+            deleteUserFromFirestore();
+          }
+        },
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  // Get current user
+                  User? user = FirebaseAuth.instance.currentUser;
+                  if (user != null) {
+                    // User is signed in
+                    String userId = user.uid;
+                    // Delete user from "users" collection
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userId)
+                          .delete();
+                      print('User $userId deleted from "users" collection.');
+                    } catch (error) {
+                      print(
+                          'Failed to delete user $userId from "users" collection: $error');
+                    }
                   }
-                }
-                // Navigate back to the home page
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                );
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
+                  // Navigate back to the home page
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
+                },
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -165,10 +173,44 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   Future<void> storeUserIDToFirestore(String userId) async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(userId).set({});
+      // Check if the "users" collection exists
+      await Future.delayed(const Duration(seconds: 3));
+      final usersCollection = FirebaseFirestore.instance.collection('users');
+      final usersSnapshot = await usersCollection.get();
+
+      if (usersSnapshot.size == 2) {
+        print(
+            'The users collection already contains two documents. Retrying to store the user ID.');
+        // Retry by calling the function recursively
+        await Future.delayed(const Duration(seconds: 2));
+        await storeUserIDToFirestore(userId);
+        return; // Exit function after retry
+      }
+
+      // Store the user ID since either the collection doesn't exist or it has less than two documents
+      await usersCollection.doc(userId).set({});
       print('User ID $userId stored to Firestore successfully.');
     } catch (error) {
       print('Failed to store user ID to Firestore: $error');
+    }
+  }
+
+  Future<void> deleteUserFromFirestore() async {
+    // Get current user
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // User is signed in
+      String userId = user.uid;
+      // Delete user from "users" collection
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .delete();
+        print('User $userId deleted from "users" collection.');
+      } catch (error) {
+        print('Failed to delete user $userId from "users" collection: $error');
+      }
     }
   }
 
