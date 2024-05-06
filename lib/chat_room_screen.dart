@@ -97,6 +97,7 @@ class ChatRoomScreen extends StatelessWidget {
                       Map<String, dynamic> data =
                           document.data() as Map<String, dynamic>;
                       return _buildMessage(
+                        context: context, // Pass context here
                         isCurrentUser: data['userId'] == currentUserId,
                         message: data['message'],
                       );
@@ -112,20 +113,34 @@ class ChatRoomScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMessage({required bool isCurrentUser, required String message}) {
+  Widget _buildMessage({
+    required BuildContext context, // Add BuildContext parameter here
+    required bool isCurrentUser,
+    required String message,
+  }) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8.0),
-      alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        padding: EdgeInsets.all(12.0),
-        decoration: BoxDecoration(
-          color: isCurrentUser ? Colors.blue[100] : Colors.grey[300],
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: Text(
-          message,
-          style: TextStyle(fontSize: 16.0),
-        ),
+      child: Row(
+        mainAxisAlignment:
+            isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        children: [
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width - 100,
+              ),
+              padding: EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                color: isCurrentUser ? Colors.blue[100] : Colors.grey[300],
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Text(
+                message,
+                style: TextStyle(fontSize: 16.0),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -144,6 +159,8 @@ class ChatRoomScreen extends StatelessWidget {
         children: [
           Expanded(
             child: TextField(
+              minLines: 1,
+              maxLines: 3,
               controller: _controller,
               decoration: const InputDecoration(
                 hintText: 'Type your message...',
