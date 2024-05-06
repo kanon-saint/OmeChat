@@ -13,6 +13,7 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+  bool _shouldStoreUserId = true;
   @override
   void initState() {
     super.initState();
@@ -31,6 +32,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         canPop: true,
         onPopInvoked: (bool didPop) {
           if (didPop) {
+            _shouldStoreUserId = false;
             deleteUserFromFirestore();
           }
         },
@@ -44,6 +46,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 onPressed: () async {
                   // Get current user
                   User? user = FirebaseAuth.instance.currentUser;
+                  _shouldStoreUserId = false;
                   if (user != null) {
                     // User is signed in
                     String userId = user.uid;
@@ -173,6 +176,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   Future<void> storeUserIDToFirestore(String userId) async {
     try {
+      // Add a delay of 5 seconds before storing the user ID
+      await Future.delayed(const Duration(seconds: 5));
+
+      if (!_shouldStoreUserId) {
+        // If the operation should not proceed, return without storing the user ID
+        return;
+      }
       // Check if the "users" collection exists
       final usersCollection = FirebaseFirestore.instance.collection('users');
       final usersSnapshot = await usersCollection.get();

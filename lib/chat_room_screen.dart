@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'home_page.dart';
-import 'loading_screen.dart';
+// chat_room_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'loading_screen.dart';
+import 'home_page.dart';
+import 'services/room_operations.dart';
 
 class ChatRoomScreen extends StatelessWidget {
   const ChatRoomScreen({
@@ -27,7 +29,7 @@ class ChatRoomScreen extends StatelessWidget {
             padding: const EdgeInsets.only(right: 16.0),
             child: ElevatedButton(
               onPressed: () async {
-                await _deleteCurrentUserFromRoom();
+                await deleteCurrentUserFromRoom(roomId, currentUserId);
 
                 Navigator.pushReplacement(
                   context,
@@ -45,7 +47,7 @@ class ChatRoomScreen extends StatelessWidget {
             padding: const EdgeInsets.only(right: 16.0),
             child: ElevatedButton(
               onPressed: () async {
-                await _deleteCurrentUserFromRoom();
+                await deleteCurrentUserFromRoom(roomId, currentUserId);
 
                 Navigator.pushReplacement(
                   context,
@@ -65,49 +67,97 @@ class ChatRoomScreen extends StatelessWidget {
         canPop: true,
         onPopInvoked: (bool didPop) {
           if (didPop) {
-            _deleteCurrentUserFromRoom();
+            deleteCurrentUserFromRoom(roomId, currentUserId);
           }
         },
-        child: Column(
-          children: [
-            Expanded(
-              child: StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection('rooms')
-                    .doc(roomId)
-                    .collection('messages')
-                    .orderBy('timestamp', descending: true)
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
+        child: StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('rooms')
+              .doc(roomId)
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            }
 
-                  return ListView(
-                    reverse:
-                        true, // To display the latest messages at the bottom
-                    padding: const EdgeInsets.all(16.0),
-                    children:
-                        snapshot.data!.docs.map((DocumentSnapshot document) {
-                      Map<String, dynamic> data =
-                          document.data() as Map<String, dynamic>;
-                      return _buildMessage(
-                        context: context, // Pass context here
-                        isCurrentUser: data['userId'] == currentUserId,
-                        message: data['message'],
+            var roomData = snapshot.data!.data() as Map<String, dynamic>?;
+
+            bool userInRoom = roomData != null &&
+                (roomData['occupant1'] == currentUserId ||
+                    roomData['occupant2'] == currentUserId);
+
+            bool connectionEstablished = userInRoom &&
+                roomData != null &&
+                (roomData['occupant1'] == occupants[0] &&
+                    roomData['occupant2'] == occupants[1]);
+
+            if (connectionEstablished) {
+              WidgetsBinding.instance!.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Connection Established'),
+                  ),
+                );
+              });
+            }
+
+            if (!connectionEstablished && userInRoom) {
+              WidgetsBinding.instance!.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('User left the room.'),
+                  ),
+                );
+              });
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection('rooms')
+                        .doc(roomId)
+                        .collection('messages')
+                        .orderBy('timestamp', descending: true)
+                        .snapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      }
+
+                      return ListView(
+                        reverse: true,
+                        padding: const EdgeInsets.all(16.0),
+                        children: snapshot.data!.docs
+                            .map((DocumentSnapshot document) {
+                          Map<String, dynamic> data =
+                              document.data() as Map<String, dynamic>;
+                          return _buildMessage(
+                            context: context,
+                            isCurrentUser: data['userId'] == currentUserId,
+                            message: data['message'],
+                          );
+                        }).toList(),
                       );
-                    }).toList(),
-                  );
-                },
-              ),
-            ),
-            _buildMessageInputField(),
-          ],
+                    },
+                  ),
+                ),
+                _buildMessageInputField(),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -193,63 +243,5 @@ class ChatRoomScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _deleteCurrentUserFromRoom() async {
-    try {
-      final roomDocRef =
-          FirebaseFirestore.instance.collection('rooms').doc(roomId);
-      final roomSnapshot = await roomDocRef.get();
-
-      if (roomSnapshot.exists) {
-        final data = roomSnapshot.data();
-
-        if (data != null) {
-          final occupant1 =
-              data.containsKey('occupant1') ? data['occupant1'] : null;
-          final occupant2 =
-              data.containsKey('occupant2') ? data['occupant2'] : null;
-
-          // Check if both occupants are null and delete the room document if so
-          if (occupant1 == "" || occupant2 == "") {
-            // Delete the document at /rooms/lrwu27
-            await roomDocRef.delete();
-            // Delete the subcollection
-            await deleteSubcollection(roomDocRef.collection('messages'));
-            print('Room document deleted: $roomId');
-          }
-
-          // Delete current user from the room
-          if (occupant1 == currentUserId) {
-            await roomDocRef.update({'occupant1': ""});
-            print('Current user deleted from occupant1 field.');
-          } else if (occupant2 == currentUserId) {
-            await roomDocRef.update({'occupant2': ""});
-            print('Current user deleted from occupant2 field.');
-          } else {
-            print('Current user is not an occupant of this room.');
-            return;
-          }
-        } else {
-          print('No data found in the room document.');
-        }
-      } else {
-        print('Room document does not exist.');
-      }
-    } catch (error) {
-      print("Error deleting current user from room: $error");
-    }
-  }
-
-  Future<void> deleteSubcollection(CollectionReference collectionRef) async {
-    final QuerySnapshot snapshot = await collectionRef.get();
-    final List<Future<void>> futures = [];
-
-    for (DocumentSnapshot doc in snapshot.docs) {
-      futures.add(doc.reference.delete());
-    }
-
-    await Future.wait(futures);
-    print('Subcollection deleted.');
   }
 }
