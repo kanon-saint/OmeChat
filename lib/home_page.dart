@@ -44,16 +44,58 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('OmeChat'),
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.orange,
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: _signInAnonymously, // Call the function on press
-          child: const Text('Start Chatting'), // Change button text
-        ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              "assets/background.png",
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: 100, // Adjust as needed
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    "assets/scribble.png",
+                    fit: BoxFit.cover,
+                  ),
+                  Image.asset(
+                    "assets/OmeChat_Logo.png",
+                    width: 200,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 250, // Adjust as needed
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ElevatedButton(
+                onPressed: _signInAnonymously,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.green, // Text color
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(18), // Change shape here
+                  ),
+                ),
+                child: const Text(
+                  'Start Chatting',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

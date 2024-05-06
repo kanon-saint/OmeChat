@@ -34,3 +34,5 @@ flutter:
     - assets/send.mp3
     - assets/receive.mp3
     - assets/new_message.mp3
+    - assets/background.png
+    - assets/scribble.png
