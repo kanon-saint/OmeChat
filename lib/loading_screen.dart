@@ -174,7 +174,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
   Future<void> storeUserIDToFirestore(String userId) async {
     try {
       // Check if the "users" collection exists
-      await Future.delayed(const Duration(seconds: 3));
       final usersCollection = FirebaseFirestore.instance.collection('users');
       final usersSnapshot = await usersCollection.get();
 
@@ -182,7 +181,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         print(
             'The users collection already contains two documents. Retrying to store the user ID.');
         // Retry by calling the function recursively
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 5));
         await storeUserIDToFirestore(userId);
         return; // Exit function after retry
       }
