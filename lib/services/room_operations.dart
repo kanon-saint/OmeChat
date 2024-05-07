@@ -28,19 +28,29 @@ Future<void> deleteCurrentUserFromRoom(
 
         // Delete current user from the room
         if (occupant1 == currentUserId) {
-          await roomDocRef.update({'occupant1': ""});
+          // await roomDocRef.update({'occupant1': ""});
+          await roomDocRef.delete();
           print('Current user deleted from occupant1 field.');
         } else if (occupant2 == currentUserId) {
-          await roomDocRef.update({'occupant2': ""});
+          // await roomDocRef.update({'occupant2': ""});
+          await roomDocRef.delete();
           print('Current user deleted from occupant2 field.');
         } else {
           print('Current user is not an occupant of this room.');
           return;
         }
       } else {
+        // Delete the subcollection
+        await deleteSubcollection(roomDocRef.collection('messages'));
+        // Delete the document at /rooms/lrwu27
+        await roomDocRef.delete();
         print('No data found in the room document.');
       }
     } else {
+      // Delete the subcollection
+      await deleteSubcollection(roomDocRef.collection('messages'));
+      // Delete the document at /rooms/lrwu27
+      await roomDocRef.delete();
       print('Room document does not exist.');
     }
   } catch (error) {

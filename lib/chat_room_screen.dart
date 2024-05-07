@@ -21,9 +21,21 @@ class ChatRoomScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat Room'),
+        title: const Text(
+          'Chat Room',
+          style: TextStyle(color: Colors.black),
+        ),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.orange,
+        backgroundColor: Color.fromRGBO(254, 243, 227, 1),
+        elevation: 0, // Set elevation to 0 to remove default shadow
+        bottom: PreferredSize(
+          // Use PreferredSize for bottom outline
+          preferredSize: Size.fromHeight(1), // Set height of the bottom outline
+          child: Container(
+            color: Colors.grey, // Set color of the bottom outline
+            height: 1, // Set height of the bottom outline
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -37,10 +49,10 @@ class ChatRoomScreen extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black,
+                foregroundColor: Colors.white,
                 backgroundColor: Colors.red,
               ),
-              child: const Text('Stop'),
+              child: const Text('STOP'),
             ),
           ),
           Padding(
@@ -55,14 +67,15 @@ class ChatRoomScreen extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black,
+                foregroundColor: Colors.white,
                 backgroundColor: Colors.green,
               ),
-              child: const Text('Next'),
+              child: const Text('NEXT'),
             ),
           ),
         ],
       ),
+      backgroundColor: Color.fromRGBO(254, 243, 227, 1),
       body: PopScope(
         canPop: true,
         onPopInvoked: (bool didPop) {
@@ -82,7 +95,8 @@ class ChatRoomScreen extends StatelessWidget {
             }
 
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return Visibility(
+                  visible: false, child: CircularProgressIndicator());
             }
 
             var roomData = snapshot.data!.data() as Map<String, dynamic>?;
@@ -134,7 +148,8 @@ class ChatRoomScreen extends StatelessWidget {
                       }
 
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return Visibility(
+                            visible: false, child: CircularProgressIndicator());
                       }
 
                       return ListView(
@@ -181,12 +196,17 @@ class ChatRoomScreen extends StatelessWidget {
               ),
               padding: EdgeInsets.all(12.0),
               decoration: BoxDecoration(
-                color: isCurrentUser ? Colors.blue[100] : Colors.grey[300],
-                borderRadius: BorderRadius.circular(8.0),
+                color: isCurrentUser
+                    ? Color.fromRGBO(232, 95, 36, 1)
+                    // rgb(232, 95, 36)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 message,
-                style: TextStyle(fontSize: 16.0),
+                style: TextStyle(
+                    fontSize: 16.0,
+                    color: isCurrentUser ? Colors.white : Colors.black),
               ),
             ),
           ),
@@ -201,6 +221,7 @@ class ChatRoomScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: const BoxDecoration(
+        color: Color.fromRGBO(242, 230, 222, 1),
         border: Border(
           top: BorderSide(color: Colors.grey),
         ),
@@ -208,12 +229,20 @@ class ChatRoomScreen extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              minLines: 1,
-              maxLines: 3,
-              controller: _controller,
-              decoration: const InputDecoration(
-                hintText: 'Type your message...',
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.0),
+              decoration: BoxDecoration(
+                color: Colors.white54, // Background color
+                borderRadius: BorderRadius.circular(25.0), // Rounded corners
+              ),
+              child: TextField(
+                minLines: 1,
+                maxLines: 3,
+                controller: _controller,
+                decoration: InputDecoration(
+                  hintText: 'Type your message...',
+                  border: InputBorder.none, // Remove default border
+                ),
               ),
             ),
           ),
