@@ -68,10 +68,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
         ),
         child: PopScope(
           canPop: true,
-          onPopInvoked: (bool didPop) {
+          onPopInvoked: (bool didPop) async {
             if (didPop) {
               _shouldStoreUserId = false;
-              deleteUserFromFirestore();
+              await deleteUserFromFirestore();
             }
           },
           child: Padding(
@@ -151,9 +151,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
                         }
                       }
                       // Navigate back to the home page
-                      Navigator.pushReplacement(
+                      Navigator.pop(
                         context,
-                        MaterialPageRoute(builder: (context) => HomePage()),
                       );
                     },
                     child: const Text('Cancel'),

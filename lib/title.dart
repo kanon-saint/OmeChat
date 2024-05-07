@@ -12,7 +12,7 @@ class _TitlePageState extends State<TitlePage> {
   void initState() {
     super.initState();
     // Run the home page after 3 seconds
-    Timer(Duration(seconds: 3), () {
+    Timer(Duration(seconds: 0), () {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(

@@ -28,12 +28,12 @@ Future<void> deleteCurrentUserFromRoom(
 
         // Delete current user from the room
         if (occupant1 == currentUserId) {
-          // await roomDocRef.update({'occupant1': ""});
-          await roomDocRef.delete();
+          await roomDocRef.update({'occupant1': ""});
+          // await roomDocRef.delete();
           print('Current user deleted from occupant1 field.');
         } else if (occupant2 == currentUserId) {
-          // await roomDocRef.update({'occupant2': ""});
-          await roomDocRef.delete();
+          await roomDocRef.update({'occupant2': ""});
+          // await roomDocRef.delete();
           print('Current user deleted from occupant2 field.');
         } else {
           print('Current user is not an occupant of this room.');
