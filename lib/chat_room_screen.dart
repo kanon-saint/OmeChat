@@ -135,8 +135,6 @@ class ChatRoomScreen extends StatelessWidget {
                 });
               }
 
-              print(!connectionEstablished && userInRoom);
-
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [

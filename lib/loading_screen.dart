@@ -257,9 +257,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         return; // Exit the function after finding the user in a room
       }
     }
-    // If the user is not in any room, print a message and wait before checking again
-    print('User $userId is not in any room. Checking again in 5 seconds...');
-    // await Future.delayed(const Duration(seconds: 2)); // Wait for 5 seconds
+
     await checkUserInRoom(userId); // Check again recursively
   }
 
@@ -279,8 +277,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
       if (usersSnapshot.size == 2) {
         print(
             'The users collection already contains two documents. Retrying to store the user ID.');
-        // Retry by calling the function recursively
-        await Future.delayed(const Duration(seconds: 5));
+
+        final random = Random();
+        final waitTime = random.nextInt(3) + 1;
+        await Future.delayed(Duration(seconds: waitTime));
+
         await storeUserIDToFirestore(userId);
         return; // Exit function after retry
       }

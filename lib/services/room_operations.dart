@@ -22,7 +22,7 @@ Future<void> deleteCurrentUserFromRoom(
           // Delete the document at /rooms/lrwu27
           await roomDocRef.delete();
           // Delete the subcollection
-          await deleteSubcollection(roomDocRef.collection('messages'));
+          // await deleteSubcollection(roomDocRef.collection('messages'));
           print('Room document deleted: $roomId');
         }
 
@@ -54,6 +54,14 @@ Future<void> deleteCurrentUserFromRoom(
       print('Room document does not exist.');
     }
   } catch (error) {
+    final roomDocRef =
+        FirebaseFirestore.instance.collection('rooms').doc(roomId);
+
+    // Delete the subcollection
+    await deleteSubcollection(roomDocRef.collection('messages'));
+    // Delete the document at /rooms/lrwu27
+    await roomDocRef.delete();
+
     print("Error deleting current user from room: $error");
   }
 }
