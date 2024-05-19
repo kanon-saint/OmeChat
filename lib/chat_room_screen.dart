@@ -24,9 +24,32 @@ class ChatRoomScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Chat Room',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.black, // Set the border color here
+                  width: 1.0, // Set the border width here
+                ),
+              ),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(
+                  'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
+                ),
+                radius: 20,
+              ),
+            ),
+            SizedBox(width: 10),
+            Text(
+              'Anonymous',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20),
+            ),
+          ],
         ),
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromRGBO(180, 74, 26, 1),
@@ -162,16 +185,74 @@ class ChatRoomScreen extends StatelessWidget {
                         return ListView(
                           reverse: true,
                           padding: const EdgeInsets.all(16.0),
-                          children: snapshot.data!.docs
-                              .map((DocumentSnapshot document) {
-                            Map<String, dynamic> data =
-                                document.data() as Map<String, dynamic>;
-                            return _buildMessage(
-                              context: context,
-                              isCurrentUser: data['userId'] == currentUserId,
-                              message: data['message'],
-                            );
-                          }).toList(),
+                          children: [
+                            ...snapshot.data!.docs.asMap().entries.map((entry) {
+                              DocumentSnapshot document = entry.value;
+                              Map<String, dynamic> data =
+                                  document.data() as Map<String, dynamic>;
+
+                              bool isCurrentUser =
+                                  data['userId'] == currentUserId;
+
+                              // Check if the current message is from the same user as the previous one
+                              bool isSameUserAsPrevious = false;
+                              if (entry.key > 0) {
+                                Map<String, dynamic> previousData =
+                                    snapshot.data!.docs[entry.key - 1].data()
+                                        as Map<String, dynamic>;
+                                String previousUserId = previousData['userId'];
+                                isSameUserAsPrevious =
+                                    previousUserId == data['userId'];
+                              }
+
+                              return _buildMessage(
+                                context: context,
+                                isCurrentUser: isCurrentUser,
+                                message: data['message'],
+                                isSameUserAsPrevious: isSameUserAsPrevious,
+                              );
+                            }).toList(),
+                            SizedBox(
+                                height:
+                                    20), // Add some spacing before the avatar
+                            Center(
+                              child: Column(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors
+                                            .black, // Set the border color here
+                                        width: 1.0, // Set the border width here
+                                      ),
+                                    ),
+                                    child: CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
+                                      ),
+                                      radius: 70,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Anonymous',
+                                    style: TextStyle(
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 5),
+                                  Text(
+                                    'You have nothing in common',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontStyle: FontStyle.italic),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -190,12 +271,15 @@ class ChatRoomScreen extends StatelessWidget {
   }
 
   Widget _buildMessage({
-    required BuildContext context, // Add BuildContext parameter here
+    required BuildContext context,
     required bool isCurrentUser,
     required String message,
+    required bool isSameUserAsPrevious,
   }) {
+    final double verticalMargin = isSameUserAsPrevious ? 4.0 : 15.0;
+
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
+      margin: EdgeInsets.only(bottom: verticalMargin),
       child: Row(
         mainAxisAlignment:
             isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -209,7 +293,6 @@ class ChatRoomScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isCurrentUser
                     ? Color.fromARGB(255, 46, 46, 46)
-                    // rgb(232, 95, 36)
                     : Color.fromARGB(255, 216, 216, 216),
                 borderRadius: BorderRadius.circular(20),
               ),

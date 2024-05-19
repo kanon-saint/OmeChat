@@ -60,4 +60,5 @@ class DefaultFirebaseOptions {
     databaseURL: 'https://omechat-7c75c-default-rtdb.firebaseio.com',
     storageBucket: 'omechat-7c75c.appspot.com',
   );
+
 }

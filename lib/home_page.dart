@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'loading_screen.dart'; // Assuming this is your loading screen
+import 'profile.dart'; // Import your ProfilePage
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -54,6 +55,51 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.fromRGBO(180, 74, 26, 1),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              // Navigate to ProfilePage
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfilePage()),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Text(
+                    'Anonymous', // Changed the text to "Anonymous"
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // Made the text white
+                    ),
+                  ),
+                  SizedBox(width: 8.0),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.black, // Set the border color here
+                        width: 1.0, // Set the border width here
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(
+                        'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
+                      ),
+                      radius: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           Positioned.fill(
