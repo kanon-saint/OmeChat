@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'home_page.dart'; // Import home page
 
 class TitlePage extends StatefulWidget {
+  const TitlePage({super.key});
+
   @override
-  _TitlePageState createState() => _TitlePageState();
+  State<TitlePage> createState() => _TitlePageState();
 }
 
 class _TitlePageState extends State<TitlePage> {
@@ -12,19 +14,20 @@ class _TitlePageState extends State<TitlePage> {
   void initState() {
     super.initState();
     // Run the home page after 3 seconds
-    Timer(Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const HomePage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
               child: child,
             );
           },
-          transitionDuration:
-              Duration(milliseconds: 1500), // Set duration to 500 milliseconds
+          transitionDuration: const Duration(
+              milliseconds: 1500), // Set duration to 500 milliseconds
         ),
       );
     });
@@ -32,7 +35,7 @@ class _TitlePageState extends State<TitlePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: LogoWidget(),
       ),
@@ -41,6 +44,8 @@ class _TitlePageState extends State<TitlePage> {
 }
 
 class LogoWidget extends StatelessWidget {
+  const LogoWidget({super.key});
+
   @override
   Widget build(BuildContext context) {
     double containerWidth = MediaQuery.of(context).size.width - 100;
@@ -63,7 +68,7 @@ class LogoWidget extends StatelessWidget {
       },
       child: Container(
         width: containerWidth,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage(
               'assets/OmeChat_Logo.png',
