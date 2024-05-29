@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'loading_screen.dart';
 import 'services/room_operations.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 Completer<void> _popCompleter = Completer<void>();
 
 class ChatRoomScreen extends StatelessWidget {
-  const ChatRoomScreen({
+  ChatRoomScreen({
     Key? key,
     required this.roomId,
     required this.occupants,
@@ -17,6 +18,7 @@ class ChatRoomScreen extends StatelessWidget {
   final String roomId;
   final List<String> occupants;
   final String currentUserId;
+  final AudioPlayer audioPlayer = AudioPlayer();
 
   @override
   Widget build(BuildContext context) {
@@ -272,47 +274,65 @@ class ChatRoomScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMessage({
-    required BuildContext context,
-    required bool isCurrentUser,
-    required String message,
-    required bool isSameUserAsPrevious,
-  }) {
-    final double verticalMargin = isSameUserAsPrevious ? 4.0 : 15.0;
+ Widget _buildMessage({
+  required BuildContext context,
+  required bool isCurrentUser,
+  required String message,
+  required bool isSameUserAsPrevious,
+}) {
+  // Play received sound message when a message is received
+  Future<void> _playSound(String soundFile) async {
+    await audioPlayer.play(AssetSource(soundFile));
+  }
+  print("is current user:  $isCurrentUser");
+  print("is same as prev:  $isSameUserAsPrevious");
 
-    return Container(
-      margin: EdgeInsets.only(bottom: verticalMargin),
-      child: Row(
-        mainAxisAlignment:
-            isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width - 100,
-              ),
-              padding: EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: isCurrentUser
-                    ? Color.fromARGB(255, 46, 46, 46)
-                    : Color.fromARGB(255, 216, 216, 216),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                message,
-                style: TextStyle(
-                    fontSize: 16.0,
-                    color: isCurrentUser ? Colors.white : Colors.black),
-              ),
+  // Determine which sound to play based on the current user
+  if (!isCurrentUser && !isSameUserAsPrevious) {
+    _playSound('receive.mp3'); // Play the received sound
+  } else if (isCurrentUser){
+    _playSound('send.mp3'); // Play the send sound
+  }
+
+  final double verticalMargin = isSameUserAsPrevious ? 4.0 : 15.0;
+
+  return Container(
+    margin: EdgeInsets.only(bottom: verticalMargin),
+    child: Row(
+      mainAxisAlignment:
+          isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        Flexible(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width - 100,
+            ),
+            padding: EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              color: isCurrentUser
+                  ? Color.fromARGB(255, 46, 46, 46)
+                  : Color.fromARGB(255, 216, 216, 216),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              message,
+              style: TextStyle(
+                  fontSize: 16.0,
+                  color: isCurrentUser ? Colors.white : Colors.black),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildMessageInputField() {
     TextEditingController _controller = TextEditingController();
+
+  Future<void> _playSound(String soundFile) async {
+    await audioPlayer.play(AssetSource(soundFile));
+  }
 
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -356,6 +376,7 @@ class ChatRoomScreen extends StatelessWidget {
                 }).catchError((error) {
                   print("Error sending message: $error");
                 });
+                 _playSound('send.mp3');
               }
             },
             icon: const Icon(Icons.send),
