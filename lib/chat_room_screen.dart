@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'loading_screen.dart';
 import 'services/room_operations.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 Completer<void> _popCompleter = Completer<void>();
 
@@ -20,6 +21,7 @@ class ChatRoomScreen extends StatefulWidget {
   final List<String> occupants;
   final String currentUserId;
 
+
   @override
   _ChatRoomScreenState createState() => _ChatRoomScreenState();
 }
@@ -31,6 +33,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   String otherUserInterest = 'Nothing';
   String interestMessage = 'Nothing in common';
   String otherUserGender = 'Unknown';
+    final AudioPlayer audioPlayer = AudioPlayer();
+  int previousDocsLength = 0;
+
+      Future<void> _playreceivedSound() async {
+      await audioPlayer.play(AssetSource('receive.mp3'));
+    }
+    Future<void> _playSendSound() async {
+      await audioPlayer.play(AssetSource('send.mp3'));
+    }
 
   @override
   void initState() {
@@ -260,6 +271,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                               child: CircularProgressIndicator());
                         }
 
+                        var docs = snapshot.data!.docs;
+
+                        // Check if the previous and current doc lengths are different
+                        if (snapshot.hasData && docs.length > previousDocsLength) {
+                          // Play received sound when new message is detected
+                          if (docs.first['userId'] != widget.currentUserId) {
+                            _playreceivedSound();
+                          }
+                          previousDocsLength = docs.length;
+                        }
+
                         return ListView(
                           reverse: true,
                           padding: const EdgeInsets.all(16.0),
@@ -438,6 +460,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 }).catchError((error) {
                   print("Error sending message: $error");
                 });
+                _playSendSound();
               }
             },
             icon: const Icon(Icons.send),
