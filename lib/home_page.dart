@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'loading_screen.dart'; // Assuming this is your loading screen
-import 'profile.dart'; // Import your ProfilePage
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'loading_screen.dart';
+import 'profile.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,11 +14,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _showButton = false;
+  String userName = 'Anonymous';
+  String userProfilePicture =
+      'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011';
 
   @override
   void initState() {
     super.initState();
-    // Hide the button for 3 seconds, then show it
+    _signInAnonymouslyAndFetchUserData();
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         _showButton = true;
@@ -25,22 +29,50 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _signInAnonymouslyAndFetchUserData() async {
+    try {
+      UserCredential userCredential = await _auth.signInAnonymously();
+      User? user = userCredential.user;
+      if (user != null) {
+        _fetchUserData(user.uid);
+      }
+    } catch (e) {
+      print('Error during anonymous sign-in: $e');
+    }
+  }
+
+  Future<void> _fetchUserData(String userId) async {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        setState(() {
+          userName = userDoc['name'] ?? 'Anonymous';
+          userProfilePicture =
+              'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/${userDoc['profilePicture']}.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011';
+        });
+        print('Fetched user data successfully');
+      } else {
+        print('No such document!');
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+    }
+  }
+
   Future<void> _signInAnonymously() async {
     try {
       final userCredential = await _auth.signInAnonymously();
       if (userCredential != null) {
         Navigator.push(
-          // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(builder: (context) => const LoadingScreen()),
         );
       }
     } on FirebaseAuthException catch (e) {
-      // Handle errors
-      print("FirebaseAuthException occurred:");
-      print("Error code: ${e.code}");
-      print("Error message: ${e.message}");
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Sign-in failed: ${e.message}'),
@@ -60,7 +92,6 @@ class _HomePageState extends State<HomePage> {
         actions: [
           GestureDetector(
             onTap: () {
-              // Navigate to ProfilePage
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProfilePage()),
@@ -71,11 +102,11 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 children: [
                   Text(
-                    'Anonymous', // Changed the text to "Anonymous"
+                    userName,
                     style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white, // Made the text white
+                      color: Colors.white,
                     ),
                   ),
                   SizedBox(width: 8.0),
@@ -83,14 +114,12 @@ class _HomePageState extends State<HomePage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.black, // Set the border color here
-                        width: 1.0, // Set the border width here
+                        color: Colors.black,
+                        width: 1.0,
                       ),
                     ),
                     child: CircleAvatar(
-                      backgroundImage: NetworkImage(
-                        'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
-                      ),
+                      backgroundImage: NetworkImage(userProfilePicture),
                       radius: 20,
                     ),
                   ),
@@ -109,7 +138,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Positioned(
-            top: 100, // Adjust as needed
+            top: 100,
             left: 0,
             right: 0,
             child: Center(
@@ -121,7 +150,7 @@ class _HomePageState extends State<HomePage> {
                     fit: BoxFit.cover,
                   ),
                   Hero(
-                    tag: 'logoTag', // Same tag used in the title page
+                    tag: 'logoTag',
                     flightShuttleBuilder: (
                       BuildContext flightContext,
                       Animation<double> animation,
@@ -146,15 +175,15 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          if (_showButton) // Display the button only if _showButton is true
+          if (_showButton)
             Positioned(
-              bottom: 175, // Adjust as needed
+              bottom: 175,
               left: 0,
               right: 0,
               child: Center(
                 child: SizedBox(
-                  width: 200, // Set the width to 150
-                  height: 50, // Set the height to 150 for a square button
+                  width: 200,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: _signInAnonymously,
                     style: ElevatedButton.styleFrom(
@@ -162,20 +191,17 @@ class _HomePageState extends State<HomePage> {
                       backgroundColor: Colors.green,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(15), // Change the radius here
+                        borderRadius: BorderRadius.circular(15),
                       ),
                     ),
                     child: Center(
                       child: Text(
                         'START',
-                        textAlign: TextAlign
-                            .center, // Center the text horizontally and vertically
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight
-                              .bold, // Set FontWeight.bold for bold text
-                          fontFamily: 'Roboto', // Change the font family here
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Roboto',
                         ),
                       ),
                     ),

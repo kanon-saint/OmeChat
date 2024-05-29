@@ -1,4 +1,8 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -13,6 +17,21 @@ class _ProfilePageState extends State<ProfilePage> {
   String? selectedProfile = 'profile4'; // Default profile selection
   String? gender = 'boy'; // Default gender selection
   String? preference = 'girls'; // Default preference selection
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _interestController = TextEditingController();
+
+  Future<void> _saveProfileData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'profilePicture': selectedProfile,
+        'name': _nameController.text,
+        'interests': _interestController.text,
+        'gender': gender,
+        'preference': preference,
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +94,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   SizedBox(height: 30.0),
                   TextField(
+                    controller: _nameController,
                     maxLength: 10,
                     decoration: InputDecoration(
                       filled: true,
@@ -85,6 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   SizedBox(height: 10.0),
                   TextField(
+                    controller: _interestController,
                     maxLength: 50,
                     minLines: 1,
                     maxLines: 2,
@@ -213,8 +234,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   SizedBox(height: 20.0),
                   ElevatedButton(
-                    onPressed: () {
-                      _showSaveConfirmation();
+                    onPressed: () async {
+                      await _saveProfileData();
+                      await _showSaveConfirmation();
                     },
                     child: Text('Save'),
                   ),
