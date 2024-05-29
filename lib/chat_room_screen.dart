@@ -21,7 +21,6 @@ class ChatRoomScreen extends StatefulWidget {
   final List<String> occupants;
   final String currentUserId;
 
-
   @override
   _ChatRoomScreenState createState() => _ChatRoomScreenState();
 }
@@ -33,15 +32,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   String otherUserInterest = 'Nothing';
   String interestMessage = 'Nothing in common';
   String otherUserGender = 'Unknown';
-    final AudioPlayer audioPlayer = AudioPlayer();
+  final AudioPlayer audioPlayer = AudioPlayer();
   int previousDocsLength = 0;
 
-      Future<void> _playreceivedSound() async {
-      await audioPlayer.play(AssetSource('receive.mp3'));
-    }
-    Future<void> _playSendSound() async {
-      await audioPlayer.play(AssetSource('send.mp3'));
-    }
+  Future<void> _playreceivedSound() async {
+    await audioPlayer.play(AssetSource('receive.mp3'));
+  }
+
+  Future<void> _playSendSound() async {
+    await audioPlayer.play(AssetSource('send.mp3'));
+  }
 
   @override
   void initState() {
@@ -112,6 +112,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         otherUserGender = otherUserSnapshot.data()?['gender'];
       });
     } else {
+      setState(() {
+        otherUserName = otherUserSnapshot.data()?['name'] ?? 'Anonymous';
+        otherUserProfilePic = otherUserSnapshot.data()?['profilePicture'] !=
+                null
+            ? 'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/${otherUserSnapshot.data()?['profilePicture']}.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011'
+            : otherUserProfilePic;
+        otherUserGender = otherUserSnapshot.data()?['gender'];
+      });
       print('User data not found.');
     }
   }
@@ -274,7 +282,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         var docs = snapshot.data!.docs;
 
                         // Check if the previous and current doc lengths are different
-                        if (snapshot.hasData && docs.length > previousDocsLength) {
+                        if (snapshot.hasData &&
+                            docs.length > previousDocsLength) {
                           // Play received sound when new message is detected
                           if (docs.first['userId'] != widget.currentUserId) {
                             _playreceivedSound();
