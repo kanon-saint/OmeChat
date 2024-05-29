@@ -7,7 +7,9 @@ import 'loading_screen.dart';
 import 'profile.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final User? user;
+
+  const HomePage({super.key, this.user});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -36,6 +38,11 @@ class _HomePageState extends State<HomePage>
         _updateShowButtonState(); // Update the show button state whenever connectivity changes
       });
     });
+    if (widget.user != null) {
+      _fetchUserData(widget.user!.uid);
+    } else {
+      _signInAnonymouslyAndFetchUserData();
+    }
 
     _controller = AnimationController(
       vsync: this,
@@ -81,7 +88,7 @@ class _HomePageState extends State<HomePage>
   Future<void> _fetchUserData(String userId) async {
     try {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('accounts')
           .doc(userId)
           .get();
 
@@ -131,11 +138,17 @@ class _HomePageState extends State<HomePage>
           actions: _connectivityResult != ConnectivityResult.none
               ? [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      final user = await Navigator.push<User>(
                         context,
-                        MaterialPageRoute(builder: (context) => ProfilePage()),
+                        MaterialPageRoute(
+                            builder: (context) => const ProfilePage()),
                       );
+                      if (user != null) {
+                        setState(() {
+                          _fetchUserData(user.uid);
+                        });
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
