@@ -14,7 +14,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool likeBoys = false;
   bool likeGirls = false;
-  String? selectedProfile = 'profile4'; // Default profile selection
+  String? selectedProfile = 'profile1'; // Default profile selection
   String? gender = 'Male'; // Default gender selection
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _interestController = TextEditingController();
