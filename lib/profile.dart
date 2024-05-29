@@ -20,6 +20,8 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _interestController = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -91,188 +93,205 @@ class _ProfilePageState extends State<ProfilePage> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: () async {
-                      final selectedProfileTemp =
-                          await _showProfileSelectionDialog();
-                      if (selectedProfileTemp != null) {
-                        setState(() {
-                          selectedProfile = selectedProfileTemp;
-                        });
-                      }
-                    },
-                    child: Center(
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black, // Set the border color here
-                            width: 1.0, // Set the border width here
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: () async {
+                        final selectedProfileTemp =
+                            await _showProfileSelectionDialog();
+                        if (selectedProfileTemp != null) {
+                          setState(() {
+                            selectedProfile = selectedProfileTemp;
+                          });
+                        }
+                      },
+                      child: Center(
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.black, // Set the border color here
+                              width: 1.0, // Set the border width here
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/$selectedProfile.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
+                            ),
+                            radius: 40,
                           ),
                         ),
-                        child: CircleAvatar(
-                          backgroundImage: NetworkImage(
-                            'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/$selectedProfile.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
-                          ),
-                          radius: 40,
+                      ),
+                    ),
+                    SizedBox(height: 30.0),
+                    TextFormField(
+                      controller: _nameController,
+                      maxLength: 10,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(),
+                        labelText: 'Screen Name',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your screen name';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 10.0),
+                    TextFormField(
+                      controller: _interestController,
+                      maxLength: 50,
+                      minLines: 1,
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(),
+                        labelText: 'Interest (Optional)',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your interests';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 10.0),
+                    Text(
+                      'Select your gender:',
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                    SizedBox(height: 10.0),
+                    Column(
+                      children: <Widget>[
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'boy',
+                              groupValue: gender,
+                              onChanged: (value) {
+                                setState(() {
+                                  gender = value;
+                                });
+                              },
+                              activeColor:
+                                  Colors.black, // Set the active color to black
+                            ),
+                            Text('Male')
+                          ],
                         ),
-                      ),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'girl',
+                              groupValue: gender,
+                              onChanged: (value) {
+                                setState(() {
+                                  gender = value;
+                                });
+                              },
+                              activeColor:
+                                  Colors.black, // Set the active color to black
+                            ),
+                            Text('Female')
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'both',
+                              groupValue: gender,
+                              onChanged: (value) {
+                                setState(() {
+                                  gender = value;
+                                });
+                              },
+                              activeColor:
+                                  Colors.black, // Set the active color to black
+                            ),
+                            Text('Non-binary')
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 30.0),
-                  TextField(
-                    controller: _nameController,
-                    maxLength: 10,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(),
-                      labelText: 'Screen Name',
+                    SizedBox(height: 20.0),
+                    Text(
+                      'Select your preferences:',
+                      style: TextStyle(fontSize: 18.0),
                     ),
-                  ),
-                  SizedBox(height: 10.0),
-                  TextField(
-                    controller: _interestController,
-                    maxLength: 50,
-                    minLines: 1,
-                    maxLines: 2,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(),
-                      labelText: 'Interest (Optional)',
+                    SizedBox(height: 10.0),
+                    Column(
+                      children: <Widget>[
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'boys',
+                              groupValue: preference,
+                              onChanged: (value) {
+                                setState(() {
+                                  preference = value;
+                                });
+                              },
+                              activeColor:
+                                  Colors.black, // Set the active color to black
+                            ),
+                            Text('Male')
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'girls',
+                              groupValue: preference,
+                              onChanged: (value) {
+                                setState(() {
+                                  preference = value;
+                                });
+                              },
+                              activeColor:
+                                  Colors.black, // Set the active color to black
+                            ),
+                            Text('Female')
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'both',
+                              groupValue: preference,
+                              onChanged: (value) {
+                                setState(() {
+                                  preference = value;
+                                });
+                              },
+                              activeColor:
+                                  Colors.black, // Set the active color to black
+                            ),
+                            Text('Non-binary')
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 10.0),
-                  Text(
-                    'Select your gender:',
-                    style: TextStyle(fontSize: 18.0),
-                  ),
-                  SizedBox(height: 10.0),
-                  Column(
-                    children: <Widget>[
-                      Row(
-                        children: [
-                          Radio<String>(
-                            value: 'boy',
-                            groupValue: gender,
-                            onChanged: (value) {
-                              setState(() {
-                                gender = value;
-                              });
-                            },
-                            activeColor:
-                                Colors.black, // Set the active color to black
-                          ),
-                          Text('Male')
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Radio<String>(
-                            value: 'girl',
-                            groupValue: gender,
-                            onChanged: (value) {
-                              setState(() {
-                                gender = value;
-                              });
-                            },
-                            activeColor:
-                                Colors.black, // Set the active color to black
-                          ),
-                          Text('Female')
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Radio<String>(
-                            value: 'both',
-                            groupValue: gender,
-                            onChanged: (value) {
-                              setState(() {
-                                gender = value;
-                              });
-                            },
-                            activeColor:
-                                Colors.black, // Set the active color to black
-                          ),
-                          Text('Non-binary')
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20.0),
-                  Text(
-                    'Select your preferences:',
-                    style: TextStyle(fontSize: 18.0),
-                  ),
-                  SizedBox(height: 10.0),
-                  Column(
-                    children: <Widget>[
-                      Row(
-                        children: [
-                          Radio<String>(
-                            value: 'boys',
-                            groupValue: preference,
-                            onChanged: (value) {
-                              setState(() {
-                                preference = value;
-                              });
-                            },
-                            activeColor:
-                                Colors.black, // Set the active color to black
-                          ),
-                          Text('Male')
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Radio<String>(
-                            value: 'girls',
-                            groupValue: preference,
-                            onChanged: (value) {
-                              setState(() {
-                                preference = value;
-                              });
-                            },
-                            activeColor:
-                                Colors.black, // Set the active color to black
-                          ),
-                          Text('Female')
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Radio<String>(
-                            value: 'both',
-                            groupValue: preference,
-                            onChanged: (value) {
-                              setState(() {
-                                preference = value;
-                              });
-                            },
-                            activeColor:
-                                Colors.black, // Set the active color to black
-                          ),
-                          Text('Non-binary')
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20.0),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await _saveProfileData();
-                      await _showSaveConfirmation();
-                    },
-                    child: Text('Save'),
-                  ),
-                ],
+                    SizedBox(height: 20.0),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          await _saveProfileData();
+                          await _showSaveConfirmation();
+                        }
+                      },
+                      child: Text('Save'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
