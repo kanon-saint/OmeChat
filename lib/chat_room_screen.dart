@@ -30,6 +30,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011';
   String otherUserInterest = 'Nothing';
   String interestMessage = 'Nothing in common';
+  String otherUserGender = 'Unknown';
 
   @override
   void initState() {
@@ -97,6 +98,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         interestMessage = commonInterests.isEmpty
             ? 'You have nothing in common'
             : 'You both like ${commonInterests.join(", ")}';
+        otherUserGender = otherUserSnapshot.data()?['gender'];
       });
     } else {
       print('User data not found.');
@@ -317,6 +319,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                       fontSize: 30,
                                       fontWeight: FontWeight.bold,
                                     ),
+                                  ),
+                                  Text(
+                                    otherUserGender,
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontStyle: FontStyle.italic),
                                   ),
                                   SizedBox(height: 5),
                                   Text(

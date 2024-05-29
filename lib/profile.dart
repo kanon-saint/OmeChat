@@ -15,8 +15,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool likeBoys = false;
   bool likeGirls = false;
   String? selectedProfile = 'profile4'; // Default profile selection
-  String? gender = 'boy'; // Default gender selection
-  String? preference = 'girls'; // Default preference selection
+  String? gender = 'Male'; // Default gender selection
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _interestController = TextEditingController();
 
@@ -43,7 +42,6 @@ class _ProfilePageState extends State<ProfilePage> {
           _nameController.text = snapshot['name'] ?? '';
           _interestController.text = snapshot['interests'] ?? '';
           gender = snapshot['gender'];
-          preference = snapshot['preference'];
         });
       }
     }
@@ -60,7 +58,6 @@ class _ProfilePageState extends State<ProfilePage> {
         'name': _nameController.text,
         'interests': _interestController.text,
         'gender': gender,
-        'preference': preference,
       });
 
       Navigator.pop(context, user); // Pass the user ID back to the caller
@@ -174,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           Row(
                             children: [
                               Radio<String>(
-                                value: 'boy',
+                                value: 'Male',
                                 groupValue: gender,
                                 onChanged: (value) {
                                   setState(() {
@@ -190,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           Row(
                             children: [
                               Radio<String>(
-                                value: 'girl',
+                                value: 'Female',
                                 groupValue: gender,
                                 onChanged: (value) {
                                   setState(() {
@@ -206,7 +203,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           Row(
                             children: [
                               Radio<String>(
-                                value: 'both',
+                                value: 'Non-binary',
                                 groupValue: gender,
                                 onChanged: (value) {
                                   setState(() {
