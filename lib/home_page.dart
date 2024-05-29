@@ -1,41 +1,75 @@
-// home_page.dart
-
-// ignore_for_file: prefer_const_constructors, avoid_print, use_super_parameters, use_build_context_synchronously
-
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'loading_screen.dart';
 import 'profile.dart';
 
 class HomePage extends StatefulWidget {
   final User? user;
 
-  const HomePage({Key? key, this.user}) : super(key: key);
+  const HomePage({super.key, this.user});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _showButton = false;
   String userName = 'Anonymous';
   String userProfilePicture =
       'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011';
+  late StreamSubscription<ConnectivityResult> _subscription;
+  ConnectivityResult _connectivityResult = ConnectivityResult.none;
+  bool _animationCompleted = false;
 
   @override
   void initState() {
     super.initState();
+    _subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      setState(() {
+        _connectivityResult = result;
+        _updateShowButtonState(); // Update the show button state whenever connectivity changes
+      });
+    });
     if (widget.user != null) {
       _fetchUserData(widget.user!.uid);
     } else {
       _signInAnonymouslyAndFetchUserData();
     }
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _showButton = true;
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3000),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          setState(() {
+            _animationCompleted = true;
+          });
+          _updateShowButtonState(); // Update the show button state when animation completes
+        }
       });
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateShowButtonState() {
+    setState(() {
+      _showButton =
+          _animationCompleted && _connectivityResult != ConnectivityResult.none;
     });
   }
 
@@ -97,53 +131,76 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromRGBO(180, 74, 26, 1),
-        actions: [
-          GestureDetector(
-            onTap: () async {
-              final user = await Navigator.push<User>(
-                context,
-                MaterialPageRoute(builder: (context) => ProfilePage()),
-              );
-
-              if (user != null) {
-                setState(() {
-                  _fetchUserData(user.uid);
-                });
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Text(
-                    userName,
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: 8.0),
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 1.0,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: AppBar(
+          backgroundColor: const Color.fromRGBO(180, 74, 26, 1),
+          actions: _connectivityResult != ConnectivityResult.none
+              ? [
+                  GestureDetector(
+                    onTap: () async {
+                      final user = await Navigator.push<User>(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ProfilePage()),
+                      );
+                      if (user != null) {
+                        setState(() {
+                          _fetchUserData(user.uid);
+                        });
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 16.0),
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.black,
+                                width: 1.0,
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              backgroundImage: NetworkImage(userProfilePicture),
+                              radius: 20,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(userProfilePicture),
-                      radius: 20,
+                  ),
+                ]
+              : null,
+          bottom: _connectivityResult == ConnectivityResult.none
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(23.0),
+                  child: Container(
+                    color: Colors.red,
+                    child: const Center(
+                      child: Text(
+                        'No internet connection',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ],
+                )
+              : null,
+        ),
       ),
       body: Stack(
         children: [
@@ -210,7 +267,7 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Text(
                         'START',
                         textAlign: TextAlign.center,
