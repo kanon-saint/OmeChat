@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'loading_screen.dart';
 import 'profile.dart';
@@ -17,16 +19,37 @@ class _HomePageState extends State<HomePage> {
   String userName = 'Anonymous';
   String userProfilePicture =
       'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011';
+  late StreamSubscription<ConnectivityResult> _subscription;
+  ConnectivityResult _connectivityResult = ConnectivityResult.none;
 
   @override
   void initState() {
     super.initState();
-    _signInAnonymouslyAndFetchUserData();
-    Future.delayed(const Duration(seconds: 3), () {
+    _subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
       setState(() {
-        _showButton = true;
+        _connectivityResult = result;
+        if (result != ConnectivityResult.none) {
+          _signInAnonymouslyAndFetchUserData();
+          Future.delayed(const Duration(seconds: 3), () {
+            setState(() {
+              _showButton = true;
+            });
+          });
+        } else {
+          setState(() {
+            _showButton = false;
+          });
+        }
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 
   Future<void> _signInAnonymouslyAndFetchUserData() async {
@@ -87,47 +110,70 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromRGBO(180, 74, 26, 1),
-        actions: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfilePage()),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Text(
-                    userName,
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: 8.0),
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 1.0,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: AppBar(
+          backgroundColor: const Color.fromRGBO(180, 74, 26, 1),
+          actions: _connectivityResult != ConnectivityResult.none
+              ? [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ProfilePage()),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 16.0),
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.black,
+                                width: 1.0,
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              backgroundImage: NetworkImage(userProfilePicture),
+                              radius: 20,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(userProfilePicture),
-                      radius: 20,
+                  ),
+                ]
+              : null,
+          bottom: _connectivityResult == ConnectivityResult.none
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(23.0),
+                  child: Container(
+                    color: Colors.red,
+                    child: const Center(
+                      child: Text(
+                        'No internet connection',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ],
+                )
+              : null,
+        ),
       ),
       body: Stack(
         children: [
@@ -194,7 +240,7 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Text(
                         'START',
                         textAlign: TextAlign.center,
