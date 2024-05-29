@@ -13,7 +13,9 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _showButton = false;
   String userName = 'Anonymous';
@@ -21,6 +23,7 @@ class _HomePageState extends State<HomePage> {
       'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011';
   late StreamSubscription<ConnectivityResult> _subscription;
   ConnectivityResult _connectivityResult = ConnectivityResult.none;
+  bool _animationCompleted = false;
 
   @override
   void initState() {
@@ -30,26 +33,37 @@ class _HomePageState extends State<HomePage> {
         .listen((ConnectivityResult result) {
       setState(() {
         _connectivityResult = result;
-        if (result != ConnectivityResult.none) {
-          _signInAnonymouslyAndFetchUserData();
-          Future.delayed(const Duration(seconds: 3), () {
-            setState(() {
-              _showButton = true;
-            });
-          });
-        } else {
-          setState(() {
-            _showButton = false;
-          });
-        }
+        _updateShowButtonState(); // Update the show button state whenever connectivity changes
       });
     });
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3000),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          setState(() {
+            _animationCompleted = true;
+          });
+          _updateShowButtonState(); // Update the show button state when animation completes
+        }
+      });
+
+    _controller.forward();
   }
 
   @override
   void dispose() {
     _subscription.cancel();
+    _controller.dispose();
     super.dispose();
+  }
+
+  void _updateShowButtonState() {
+    setState(() {
+      _showButton =
+          _animationCompleted && _connectivityResult != ConnectivityResult.none;
+    });
   }
 
   Future<void> _signInAnonymouslyAndFetchUserData() async {
