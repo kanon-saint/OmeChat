@@ -20,6 +20,33 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _interestController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    fetchData(); // Fetch user's profile data when the page initializes
+  }
+
+  Future<void> fetchData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('accounts')
+          .doc(user.uid)
+          .get();
+
+      if (snapshot.exists) {
+        setState(() {
+          selectedProfile = snapshot['profilePicture'];
+          _nameController.text = snapshot['name'] ?? '';
+          _interestController.text = snapshot['interests'] ?? '';
+          gender = snapshot['gender'];
+          preference = snapshot['preference'];
+        });
+      }
+    }
+  }
+
   Future<void> _saveProfileData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
