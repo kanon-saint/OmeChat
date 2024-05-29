@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, use_build_context_synchronously, library_private_types_in_public_api, use_super_parameters
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,13 +23,18 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _saveProfileData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      await FirebaseFirestore.instance
+          .collection('accounts')
+          .doc(user.uid)
+          .set({
         'profilePicture': selectedProfile,
         'name': _nameController.text,
         'interests': _interestController.text,
         'gender': gender,
         'preference': preference,
       });
+
+      Navigator.pop(context, user); // Pass the user ID back to the caller
     }
   }
 

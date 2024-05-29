@@ -1,3 +1,7 @@
+// home_page.dart
+
+// ignore_for_file: prefer_const_constructors, avoid_print, use_super_parameters, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,7 +9,9 @@ import 'loading_screen.dart';
 import 'profile.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final User? user;
+
+  const HomePage({Key? key, this.user}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -21,7 +27,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _signInAnonymouslyAndFetchUserData();
+    if (widget.user != null) {
+      _fetchUserData(widget.user!.uid);
+    } else {
+      _signInAnonymouslyAndFetchUserData();
+    }
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         _showButton = true;
@@ -44,7 +54,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchUserData(String userId) async {
     try {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('accounts')
           .doc(userId)
           .get();
 
@@ -91,11 +101,17 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Color.fromRGBO(180, 74, 26, 1),
         actions: [
           GestureDetector(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              final user = await Navigator.push<User>(
                 context,
                 MaterialPageRoute(builder: (context) => ProfilePage()),
               );
+
+              if (user != null) {
+                setState(() {
+                  _fetchUserData(user.uid);
+                });
+              }
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
