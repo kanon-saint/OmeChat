@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'loading_screen.dart';
 import 'services/room_operations.dart';
 
+
+
 Completer<void> _popCompleter = Completer<void>();
 
 class ChatRoomScreen extends StatefulWidget {
@@ -20,6 +22,7 @@ class ChatRoomScreen extends StatefulWidget {
   final List<String> occupants;
   final String currentUserId;
 
+<<<<<<< Updated upstream
   @override
   _ChatRoomScreenState createState() => _ChatRoomScreenState();
 }
@@ -102,8 +105,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       });
     } else {
       print('User data not found.');
+=======
+  int previousDocsLength = 0;
+
+    Future<void> _playreceivedSound() async {
+      await audioPlayer.play(AssetSource('receive.mp3'));
+>>>>>>> Stashed changes
     }
   }
+
+    Future<void> _playSendSound() async {
+      await audioPlayer.play(AssetSource('send.mp3'));
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -260,6 +273,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                               child: CircularProgressIndicator());
                         }
 
+                        var docs = snapshot.data!.docs;
+
+                        // Check if the previous and current doc lengths are different
+                        if (snapshot.hasData && docs.length > previousDocsLength) {
+                          // Play received sound when new message is detected
+                          if (docs.first['userId'] != currentUserId) {
+                            _playreceivedSound();
+                          }
+                          previousDocsLength = docs.length;
+                        }
+                        
                         return ListView(
                           reverse: true,
                           padding: const EdgeInsets.all(16.0),
@@ -354,6 +378,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+<<<<<<< Updated upstream
   Widget _buildMessage({
     required BuildContext context,
     required bool isCurrentUser,
@@ -386,6 +411,40 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     fontSize: 16.0,
                     color: isCurrentUser ? Colors.white : Colors.black),
               ),
+=======
+ Widget _buildMessage({
+  required BuildContext context,
+  required bool isCurrentUser,
+  required String message,
+  required bool isSameUserAsPrevious,
+}) {
+
+  final double verticalMargin = isSameUserAsPrevious ? 4.0 : 15.0;
+
+  return Container(
+    margin: EdgeInsets.only(bottom: verticalMargin),
+    child: Row(
+      mainAxisAlignment:
+          isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        Flexible(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width - 100,
+            ),
+            padding: EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              color: isCurrentUser
+                  ? Color.fromARGB(255, 46, 46, 46)
+                  : Color.fromARGB(255, 216, 216, 216),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              message,
+              style: TextStyle(
+                  fontSize: 16.0,
+                  color: isCurrentUser ? Colors.white : Colors.black),
+>>>>>>> Stashed changes
             ),
           ),
         ],
@@ -438,6 +497,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 }).catchError((error) {
                   print("Error sending message: $error");
                 });
+<<<<<<< Updated upstream
+=======
+                 _playSendSound();
+>>>>>>> Stashed changes
               }
             },
             icon: const Icon(Icons.send),
