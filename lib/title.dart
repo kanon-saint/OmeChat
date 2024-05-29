@@ -13,8 +13,8 @@ class _TitlePageState extends State<TitlePage> {
   @override
   void initState() {
     super.initState();
-    // Run the home page after 3 seconds
-    Timer(const Duration(seconds: 3), () {
+    // Navigate to the home page after 1 second
+    Timer(const Duration(seconds: 1), () {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
@@ -27,7 +27,7 @@ class _TitlePageState extends State<TitlePage> {
             );
           },
           transitionDuration: const Duration(
-              milliseconds: 1500), // Set duration to 500 milliseconds
+              milliseconds: 3000), // Set transition duration to 3 seconds
         ),
       );
     });
