@@ -19,9 +19,13 @@ class ChatRoomScreen extends StatelessWidget {
   final List<String> occupants;
   final String currentUserId;
   final AudioPlayer audioPlayer = AudioPlayer();
+  int previousDocsLength = 0;
 
     Future<void> _playreceivedSound() async {
       await audioPlayer.play(AssetSource('receive.mp3'));
+    }
+    Future<void> _playSendSound() async {
+      await audioPlayer.play(AssetSource('send.mp3'));
     }
 
   @override
@@ -146,16 +150,6 @@ class ChatRoomScreen extends StatelessWidget {
                   (roomData['occupant1'] == occupants[0] &&
                       roomData['occupant2'] == occupants[1]);
 
-              // if (connectionEstablished) {
-              //   WidgetsBinding.instance!.addPostFrameCallback((_) {
-              //     ScaffoldMessenger.of(context).showSnackBar(
-              //       SnackBar(
-              //         content: Text('Connection Established'),
-              //       ),
-              //     );
-              //   });
-              // }
-
               if (!connectionEstablished && userInRoom) {
                 WidgetsBinding.instance!.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -188,6 +182,16 @@ class ChatRoomScreen extends StatelessWidget {
                           return Visibility(
                               visible: false,
                               child: CircularProgressIndicator());
+                        }
+                                                var docs = snapshot.data!.docs;
+
+                        // Check if the previous and current doc lengths are different
+                        if (snapshot.hasData && docs.length > previousDocsLength) {
+                          // Play received sound when new message is detected
+                          if (docs.first['userId'] != currentUserId) {
+                            _playreceivedSound();
+                          }
+                          previousDocsLength = docs.length;
                         }
 
                         return ListView(
@@ -284,22 +288,6 @@ class ChatRoomScreen extends StatelessWidget {
   required String message,
   required bool isSameUserAsPrevious,
 }) {
-  // // Play received sound message when a message is received
-  // Future<void> _playSound(String soundFile) async {
-  //   await audioPlayer.play(AssetSource(soundFile));
-  // }
-
-  // // Determine which sound to play based on the current user
-  // if (!isCurrentUser && !isSameUserAsPrevious) {
-  //   _playSound('receive.mp3'); // Play the received sound
-  // } else if (isCurrentUser){
-  //   _playSound('send.mp3'); // Play the send sound
-  // }
-
-  // Call _playReceivedSound when a new message is received
-  if (!isCurrentUser) {
-    _playreceivedSound();
-  }
 
   final double verticalMargin = isSameUserAsPrevious ? 4.0 : 15.0;
 
@@ -336,9 +324,7 @@ class ChatRoomScreen extends StatelessWidget {
 
   Widget _buildMessageInputField() {
     TextEditingController _controller = TextEditingController();
-    Future<void> _playSound() async {
-      await audioPlayer.play(AssetSource('send.mp3'));
-    }
+
 
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -382,7 +368,7 @@ class ChatRoomScreen extends StatelessWidget {
                 }).catchError((error) {
                   print("Error sending message: $error");
                 });
-                 _playSound();
+                 _playSendSound();
               }
             },
             icon: const Icon(Icons.send),
