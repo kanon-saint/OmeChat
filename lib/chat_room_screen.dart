@@ -30,8 +30,8 @@ class ChatRoomScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.black, // Set the border color here
-                  width: 1.0, // Set the border width here
+                  color: Colors.black,
+                  width: 1.0,
                 ),
               ),
               child: CircleAvatar(
@@ -42,12 +42,16 @@ class ChatRoomScreen extends StatelessWidget {
               ),
             ),
             SizedBox(width: 10),
-            Text(
-              'Anonymous',
-              style: TextStyle(
+            Expanded(
+              child: Text(
+                'Anonymous',
+                style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 20),
+                  fontSize: 20,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
