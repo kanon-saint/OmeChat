@@ -1,17 +1,14 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'loading_screen.dart';
 import 'services/room_operations.dart';
-
-
+import 'package:audioplayers/audioplayers.dart';
 
 Completer<void> _popCompleter = Completer<void>();
 
-class ChatRoomScreen extends StatefulWidget {
-  const ChatRoomScreen({
+class ChatRoomScreen extends StatelessWidget {
+  ChatRoomScreen({
     Key? key,
     required this.roomId,
     required this.occupants,
@@ -21,99 +18,12 @@ class ChatRoomScreen extends StatefulWidget {
   final String roomId;
   final List<String> occupants;
   final String currentUserId;
-
-<<<<<<< Updated upstream
-  @override
-  _ChatRoomScreenState createState() => _ChatRoomScreenState();
-}
-
-class _ChatRoomScreenState extends State<ChatRoomScreen> {
-  String otherUserName = 'Anonymous';
-  String otherUserProfilePic =
-      'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011';
-  String otherUserInterest = 'Nothing';
-  String interestMessage = 'Nothing in common';
-  String otherUserGender = 'Unknown';
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUserData();
-  }
-
-  Future<void> fetchUserData() async {
-    String otherUserId =
-        widget.occupants.firstWhere((id) => id != widget.currentUserId);
-
-    // Fetch other user's data
-    DocumentSnapshot<Map<String, dynamic>> otherUserSnapshot =
-        await FirebaseFirestore.instance
-            .collection('accounts')
-            .doc(otherUserId)
-            .get();
-
-    // Fetch current user's data
-    DocumentSnapshot<Map<String, dynamic>> currentUserSnapshot =
-        await FirebaseFirestore.instance
-            .collection('accounts')
-            .doc(widget.currentUserId)
-            .get();
-
-    if (otherUserSnapshot.exists && currentUserSnapshot.exists) {
-      // Debugging prints to check the data retrieved
-      print('Other User Data: ${otherUserSnapshot.data()}');
-      print('Current User Data: ${currentUserSnapshot.data()}');
-
-// Extracting interests from the user data
-      List<String> otherUserInterests =
-          ((otherUserSnapshot.data()?['interests'] ?? '') as String)
-              .toLowerCase()
-              .split(',')
-              .map((interest) => interest.trim())
-              .toList();
-      List<String> currentUserInterests =
-          ((currentUserSnapshot.data()?['interests'] ?? '') as String)
-              .toLowerCase()
-              .split(',')
-              .map((interest) => interest.trim())
-              .toList();
-
-      print('Other User Interests: $otherUserInterests');
-      print('Current User Interests: $currentUserInterests');
-
-// Check for common interests
-      List<String> commonInterests = [];
-      for (String interest in currentUserInterests) {
-        if (otherUserInterests.contains(interest)) {
-          commonInterests.add(interest);
-        }
-      }
-
-      print('Room common interests: $commonInterests');
-
-      setState(() {
-        otherUserName = otherUserSnapshot.data()?['name'] ?? 'Anonymous';
-        otherUserProfilePic = otherUserSnapshot.data()?['profilePicture'] !=
-                null
-            ? 'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/${otherUserSnapshot.data()?['profilePicture']}.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011'
-            : otherUserProfilePic;
-        otherUserInterest = otherUserSnapshot.data()?['interests'] ?? 'Nothing';
-        interestMessage = commonInterests.isEmpty
-            ? 'You have nothing in common'
-            : 'You both like ${commonInterests.join(", ")}';
-        otherUserGender = otherUserSnapshot.data()?['gender'];
-      });
-    } else {
-      print('User data not found.');
-=======
+  final AudioPlayer audioPlayer = AudioPlayer();
   int previousDocsLength = 0;
 
     Future<void> _playreceivedSound() async {
       await audioPlayer.play(AssetSource('receive.mp3'));
->>>>>>> Stashed changes
     }
-  }
-
     Future<void> _playSendSound() async {
       await audioPlayer.play(AssetSource('send.mp3'));
     }
@@ -133,14 +43,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 ),
               ),
               child: CircleAvatar(
-                backgroundImage: NetworkImage(otherUserProfilePic),
+                backgroundImage: NetworkImage(
+                  'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
+                ),
                 radius: 20,
               ),
             ),
             SizedBox(width: 10),
             Expanded(
               child: Text(
-                otherUserName,
+                'Anonymous',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -159,10 +71,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: ElevatedButton(
               onPressed: () async {
                 _popCompleter = Completer<void>();
-                await deleteCurrentUserFromRoom(
-                    widget.roomId, widget.currentUserId);
+                await deleteCurrentUserFromRoom(roomId, currentUserId);
 
-                Navigator.pop(context);
+                Navigator.pop(
+                  context,
+                );
                 await _popCompleter.future;
               },
               style: ElevatedButton.styleFrom(
@@ -177,8 +90,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: ElevatedButton(
               onPressed: () async {
                 _popCompleter = Completer<void>();
-                await deleteCurrentUserFromRoom(
-                    widget.roomId, widget.currentUserId);
+                await deleteCurrentUserFromRoom(roomId, currentUserId);
 
                 Navigator.pushReplacement(
                   context,
@@ -207,15 +119,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           canPop: true,
           onPopInvoked: (bool didPop) async {
             if (didPop) {
-              await deleteCurrentUserFromRoom(
-                  widget.roomId, widget.currentUserId);
+              await deleteCurrentUserFromRoom(roomId, currentUserId);
               _popCompleter.complete();
             }
           },
           child: StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection('rooms')
-                .doc(widget.roomId)
+                .doc(roomId)
                 .snapshots(),
             builder: (BuildContext context,
                 AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -231,13 +142,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               var roomData = snapshot.data!.data() as Map<String, dynamic>?;
 
               bool userInRoom = roomData != null &&
-                  (roomData['occupant1'] == widget.currentUserId ||
-                      roomData['occupant2'] == widget.currentUserId);
+                  (roomData['occupant1'] == currentUserId ||
+                      roomData['occupant2'] == currentUserId);
 
               bool connectionEstablished = userInRoom &&
                   roomData != null &&
-                  (roomData['occupant1'] == widget.occupants[0] &&
-                      roomData['occupant2'] == widget.occupants[1]);
+                  (roomData['occupant1'] == occupants[0] &&
+                      roomData['occupant2'] == occupants[1]);
 
               if (!connectionEstablished && userInRoom) {
                 WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -256,7 +167,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     child: StreamBuilder(
                       stream: FirebaseFirestore.instance
                           .collection('rooms')
-                          .doc(widget.roomId)
+                          .doc(roomId)
                           .collection('messages')
                           .orderBy('timestamp', descending: true)
                           .snapshots(),
@@ -272,8 +183,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                               visible: false,
                               child: CircularProgressIndicator());
                         }
-
-                        var docs = snapshot.data!.docs;
+                                                var docs = snapshot.data!.docs;
 
                         // Check if the previous and current doc lengths are different
                         if (snapshot.hasData && docs.length > previousDocsLength) {
@@ -283,7 +193,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           }
                           previousDocsLength = docs.length;
                         }
-                        
+
                         return ListView(
                           reverse: true,
                           padding: const EdgeInsets.all(16.0),
@@ -294,7 +204,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                   document.data() as Map<String, dynamic>;
 
                               bool isCurrentUser =
-                                  data['userId'] == widget.currentUserId;
+                                  data['userId'] == currentUserId;
 
                               // Check if the current message is from the same user as the previous one
                               bool isSameUserAsPrevious = false;
@@ -331,28 +241,22 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                     ),
                                     child: CircleAvatar(
                                       backgroundImage: NetworkImage(
-                                        otherUserProfilePic,
+                                        'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/profile1.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
                                       ),
                                       radius: 70,
                                     ),
                                   ),
                                   SizedBox(height: 10),
                                   Text(
-                                    otherUserName,
+                                    'Anonymous',
                                     style: TextStyle(
                                       fontSize: 30,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  Text(
-                                    otherUserGender,
-                                    style: TextStyle(
-                                        fontSize: 15,
-                                        fontStyle: FontStyle.italic),
-                                  ),
                                   SizedBox(height: 5),
                                   Text(
-                                    interestMessage,
+                                    'You have nothing in common',
                                     style: TextStyle(
                                         fontSize: 15,
                                         fontStyle: FontStyle.italic),
@@ -378,40 +282,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
-<<<<<<< Updated upstream
-  Widget _buildMessage({
-    required BuildContext context,
-    required bool isCurrentUser,
-    required String message,
-    required bool isSameUserAsPrevious,
-  }) {
-    final double verticalMargin = isSameUserAsPrevious ? 4.0 : 15.0;
-
-    return Container(
-      margin: EdgeInsets.only(bottom: verticalMargin),
-      child: Row(
-        mainAxisAlignment:
-            isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width - 100,
-              ),
-              padding: EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: isCurrentUser
-                    ? Color.fromARGB(255, 46, 46, 46)
-                    : Color.fromARGB(255, 216, 216, 216),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                message,
-                style: TextStyle(
-                    fontSize: 16.0,
-                    color: isCurrentUser ? Colors.white : Colors.black),
-              ),
-=======
  Widget _buildMessage({
   required BuildContext context,
   required bool isCurrentUser,
@@ -444,16 +314,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               style: TextStyle(
                   fontSize: 16.0,
                   color: isCurrentUser ? Colors.white : Colors.black),
->>>>>>> Stashed changes
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildMessageInputField() {
     TextEditingController _controller = TextEditingController();
+
 
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -488,19 +359,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 _controller.clear();
                 FirebaseFirestore.instance
                     .collection('rooms')
-                    .doc(widget.roomId)
+                    .doc(roomId)
                     .collection('messages')
                     .add({
                   'message': messageText,
-                  'userId': widget.currentUserId,
+                  'userId': currentUserId,
                   'timestamp': Timestamp.now(),
                 }).catchError((error) {
                   print("Error sending message: $error");
                 });
-<<<<<<< Updated upstream
-=======
                  _playSendSound();
->>>>>>> Stashed changes
               }
             },
             icon: const Icon(Icons.send),
