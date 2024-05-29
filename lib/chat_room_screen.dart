@@ -20,6 +20,10 @@ class ChatRoomScreen extends StatelessWidget {
   final String currentUserId;
   final AudioPlayer audioPlayer = AudioPlayer();
 
+    Future<void> _playreceivedSound() async {
+      await audioPlayer.play(AssetSource('receive.mp3'));
+    }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -280,18 +284,21 @@ class ChatRoomScreen extends StatelessWidget {
   required String message,
   required bool isSameUserAsPrevious,
 }) {
-  // Play received sound message when a message is received
-  Future<void> _playSound(String soundFile) async {
-    await audioPlayer.play(AssetSource(soundFile));
-  }
-  print("is current user:  $isCurrentUser");
-  print("is same as prev:  $isSameUserAsPrevious");
+  // // Play received sound message when a message is received
+  // Future<void> _playSound(String soundFile) async {
+  //   await audioPlayer.play(AssetSource(soundFile));
+  // }
 
-  // Determine which sound to play based on the current user
-  if (!isCurrentUser && !isSameUserAsPrevious) {
-    _playSound('receive.mp3'); // Play the received sound
-  } else if (isCurrentUser){
-    _playSound('send.mp3'); // Play the send sound
+  // // Determine which sound to play based on the current user
+  // if (!isCurrentUser && !isSameUserAsPrevious) {
+  //   _playSound('receive.mp3'); // Play the received sound
+  // } else if (isCurrentUser){
+  //   _playSound('send.mp3'); // Play the send sound
+  // }
+
+  // Call _playReceivedSound when a new message is received
+  if (!isCurrentUser) {
+    _playreceivedSound();
   }
 
   final double verticalMargin = isSameUserAsPrevious ? 4.0 : 15.0;
@@ -329,10 +336,9 @@ class ChatRoomScreen extends StatelessWidget {
 
   Widget _buildMessageInputField() {
     TextEditingController _controller = TextEditingController();
-
-  Future<void> _playSound(String soundFile) async {
-    await audioPlayer.play(AssetSource(soundFile));
-  }
+    Future<void> _playSound() async {
+      await audioPlayer.play(AssetSource('send.mp3'));
+    }
 
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -376,7 +382,7 @@ class ChatRoomScreen extends StatelessWidget {
                 }).catchError((error) {
                   print("Error sending message: $error");
                 });
-                 _playSound('send.mp3');
+                 _playSound();
               }
             },
             icon: const Icon(Icons.send),
