@@ -109,13 +109,10 @@ class _HomePageState extends State<HomePage>
 
   Future<void> _signInAnonymously() async {
     try {
-      final userCredential = await _auth.signInAnonymously();
-      if (userCredential != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoadingScreen()),
-        );
-      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoadingScreen()),
+      );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
