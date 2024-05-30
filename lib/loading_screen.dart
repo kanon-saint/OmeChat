@@ -165,84 +165,52 @@ class _LoadingScreenState extends State<LoadingScreen> {
     );
   }
 
-  void printCurrentUserUID() async {
+  Future<void> printCurrentUserUID() async {
     // Get current user
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       // User is signed in
-      print('Current User UID: ${user.uid}');
+      String userId = user.uid;
 
       // Store current user's ID to Firestore
-      await storeUserIDToFirestore(user.uid);
+      await storeUserIDToFirestore(userId);
 
-      // Fetch all user IDs from Firestore
-      FirebaseFirestore.instance
-          .collection('users')
-          .get()
-          .then((querySnapshot) async {
-        List<String> allUserIds = [];
-        querySnapshot.docs.forEach((doc) {
-          allUserIds.add(doc.id);
-        });
-
-        // Pair up the users
-        List<List<String>> pairs = [];
-        for (int i = 0; i < allUserIds.length; i += 2) {
-          if (i + 1 < allUserIds.length) {
-            pairs.add([allUserIds[i], allUserIds[i + 1]]);
-          } else {
-            // If there's an odd number of users, handle the last one separately
-            pairs.add([allUserIds[i]]);
-          }
-        }
-
-        // Store pairs in Firestore with unique room IDs if both users have been paired
-        for (int i = 0; i < pairs.length; i++) {
-          List<String> pair = pairs[i];
-          if (pair.length == 2) {
-            String roomId = generateRoomId();
-            await FirebaseFirestore.instance
-                .collection('rooms')
-                .doc(roomId)
-                .set({
-              'roomID': roomId,
-              'occupant1': pair[0],
-              'occupant2': pair[1],
-            });
-            print('Pair $pair stored with Room ID $roomId in Firestore.');
-
-            // Delete users from "users" collection
-            for (String userId in pair) {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(userId)
-                  .delete();
-              print('User $userId deleted from "users" collection.');
-            }
-          }
-        }
-
-        // Check if the current user is in any room
-        await checkUserInRoom(user.uid);
-      }).catchError((error) {
-        print('Failed to fetch user IDs: $error');
-      });
+      // Navigate to chat room if user is present in any room
+      navigateToChatRoom(userId);
     } else {
       // No user is signed in
       print('No user signed in.');
     }
   }
 
-  Future<void> checkUserInRoom(String userId) async {
-    QuerySnapshot roomSnapshot =
-        await FirebaseFirestore.instance.collection('rooms').get();
-    for (QueryDocumentSnapshot roomDoc in roomSnapshot.docs) {
-      List<String> occupants = [roomDoc['occupant1'], roomDoc['occupant2']];
-      if (occupants.contains(userId)) {
-        // User is in a room, print room details and navigate to chat room
-        String roomId = roomDoc['roomID'];
-        print(
-            'User $userId is in a room with Room ID: $roomId and Occupants: $occupants.');
+  Future<void> storeUserIDToFirestore(String userId) async {
+    try {
+      // Check if the "users" collection exists
+      final usersCollection = FirebaseFirestore.instance.collection('users');
+
+      // Store the user ID since either the collection doesn't exist or it has less than two documents
+      await Future.delayed(const Duration(seconds: 3));
+      await usersCollection.doc(userId).set({});
+      print('User ID $userId stored to Firestore successfully.');
+    } catch (error) {
+      print('Failed to store user ID to Firestore: $error');
+    }
+  }
+
+  void navigateToChatRoom(String userId) {
+    // Use StreamBuilder to continuously monitor the rooms collection for the user's presence
+    FirebaseFirestore.instance
+        .collection('rooms')
+        .where('occupant1', isEqualTo: userId)
+        .snapshots()
+        .listen((querySnapshot1) {
+      if (querySnapshot1.docs.isNotEmpty) {
+        // User is present in a room, navigate to chat room
+        String roomId = querySnapshot1.docs.first.id;
+        List<String> occupants = [
+          querySnapshot1.docs.first['occupant1'],
+          querySnapshot1.docs.first['occupant2']
+        ];
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -253,44 +221,34 @@ class _LoadingScreenState extends State<LoadingScreen> {
             ),
           ),
         );
-        return; // Exit the function after finding the user in a room
-      }
-    }
-
-    await checkUserInRoom(userId); // Check again recursively
-  }
-
-  Future<void> storeUserIDToFirestore(String userId) async {
-    try {
-      // Add a delay of 5 seconds before storing the user ID
-      await Future.delayed(const Duration(seconds: 5));
-
-      if (!_shouldStoreUserId) {
-        // If the operation should not proceed, return without storing the user ID
         return;
       }
-      // Check if the "users" collection exists
-      final usersCollection = FirebaseFirestore.instance.collection('users');
-      final usersSnapshot = await usersCollection.get();
 
-      if (usersSnapshot.size == 2) {
-        print(
-            'The users collection already contains two documents. Retrying to store the user ID.');
-
-        final random = Random();
-        final waitTime = random.nextInt(3) + 1;
-        await Future.delayed(Duration(seconds: waitTime));
-
-        await storeUserIDToFirestore(userId);
-        return; // Exit function after retry
-      }
-
-      // Store the user ID since either the collection doesn't exist or it has less than two documents
-      await usersCollection.doc(userId).set({});
-      print('User ID $userId stored to Firestore successfully.');
-    } catch (error) {
-      print('Failed to store user ID to Firestore: $error');
-    }
+      FirebaseFirestore.instance
+          .collection('rooms')
+          .where('occupant2', isEqualTo: userId)
+          .snapshots()
+          .listen((querySnapshot2) {
+        if (querySnapshot2.docs.isNotEmpty) {
+          // User is present in a room, navigate to chat room
+          String roomId = querySnapshot2.docs.first.id;
+          List<String> occupants = [
+            querySnapshot2.docs.first['occupant1'],
+            querySnapshot2.docs.first['occupant2']
+          ];
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatRoomScreen(
+                roomId: roomId,
+                occupants: occupants,
+                currentUserId: userId, // Pass the current user's ID
+              ),
+            ),
+          );
+        }
+      });
+    });
   }
 
   Future<void> deleteUserFromFirestore() async {
@@ -310,16 +268,5 @@ class _LoadingScreenState extends State<LoadingScreen> {
         print('Failed to delete user $userId from "users" collection: $error');
       }
     }
-  }
-
-  String generateRoomId() {
-    // Generate a unique room ID
-    String roomId = '';
-    final random = Random();
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    for (int i = 0; i < 6; i++) {
-      roomId += chars[random.nextInt(chars.length)];
-    }
-    return roomId;
   }
 }
