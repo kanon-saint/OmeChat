@@ -1,19 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'chat_room_screen.dart';
 
 class LoadingScreen extends StatefulWidget {
-  const LoadingScreen({Key? key}) : super(key: key);
+  const LoadingScreen({super.key});
 
   @override
-  _LoadingScreenState createState() => _LoadingScreenState();
+  State<LoadingScreen> createState() => _LoadingScreenState();
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  bool _shouldStoreUserId = true;
+  late StreamController<int> _pageControllerStream;
+  late Timer _timer;
+  late StreamSubscription<ConnectivityResult> _subscription;
   int _currentPage = 0;
+  ConnectivityResult _connectivityResult = ConnectivityResult.none;
   final List<Map<String, String>> _messages = [
     {
       'title': 'Talking to Strangers',
@@ -30,8 +34,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
           'Have fun while meeting new people, but always prioritize your safety.'
     },
   ];
-  late StreamController<int> _pageControllerStream;
-  late Timer _timer;
 
   @override
   void initState() {
@@ -39,17 +41,29 @@ class _LoadingScreenState extends State<LoadingScreen> {
     _pageControllerStream = StreamController<int>();
     _startTimer();
     printCurrentUserUID(); // Print current user's UID
+    _subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      setState(() {
+        _connectivityResult = result;
+        if (_connectivityResult == ConnectivityResult.none) {
+          Navigator.pop(
+              context); // Go back to the home page if there is no internet connection
+        }
+      });
+    });
   }
 
   @override
   void dispose() {
-    _timer.cancel();
     _pageControllerStream.close();
+    _timer.cancel();
+    _subscription.cancel();
     super.dispose();
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 3), (Timer timer) {
+    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
       _pageControllerStream.add(_currentPage + 1);
     });
   }
@@ -58,7 +72,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/background.png"),
             fit: BoxFit.cover,
@@ -68,7 +82,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
           canPop: true,
           onPopInvoked: (bool didPop) async {
             if (didPop) {
-              _shouldStoreUserId = false;
+              _timer.cancel();
               await deleteUserFromFirestore();
             }
           },
@@ -90,29 +104,27 @@ class _LoadingScreenState extends State<LoadingScreen> {
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(
                                   0.5), // Gray transparent background
-                              borderRadius: BorderRadius.circular(
-                                  10), // Optional: border radius
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: EdgeInsets.all(
-                                10), // Optional: padding for texts
+                            padding: const EdgeInsets.all(
+                                10), // Padding for the container
                             child: ListTile(
                               title: Text(
                                 _messages[_currentPage % _messages.length]
                                     ['title']!,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize:
-                                      20, // Increase the font size for title
+                                  fontSize: 20, // Font size for the title text
                                 ),
                               ),
                               subtitle: Text(
                                 _messages[_currentPage % _messages.length]
                                     ['subtitle']!,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize:
-                                      16, // Increase the font size for content
+                                      16, // Font size for the subtitle text
                                 ),
                               ),
                             ),
@@ -123,37 +135,27 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     },
                   ),
                   LinearProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.white),
                     backgroundColor: Colors.grey[350],
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () async {
-                      // Get current user
-                      User? user = FirebaseAuth.instance.currentUser;
-                      _shouldStoreUserId = false;
-                      if (user != null) {
-                        // User is signed in
-                        String userId = user.uid;
-                        // Delete user from "users" collection
-                        try {
-                          await FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(userId)
-                              .delete();
-                          print(
-                              'User $userId deleted from "users" collection.');
-                        } catch (error) {
-                          print(
-                              'Failed to delete user $userId from "users" collection: $error');
-                        }
-                      }
-                      // Navigate back to the home page
-                      Navigator.pop(
-                        context,
-                      );
-                    },
-                    child: const Text('Cancel'),
+                    onPressed: _cancelFindPair,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -267,5 +269,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
         print('Failed to delete user $userId from "users" collection: $error');
       }
     }
+  }
+
+  void _cancelFindPair() {
+    _timer.cancel();
+    Navigator.pop(context);
   }
 }
