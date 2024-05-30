@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,18 +11,18 @@ Completer<void> _popCompleter = Completer<void>();
 
 class ChatRoomScreen extends StatefulWidget {
   const ChatRoomScreen({
-    Key? key,
+    super.key,
     required this.roomId,
     required this.occupants,
     required this.currentUserId,
-  }) : super(key: key);
+  });
 
   final String roomId;
   final List<String> occupants;
   final String currentUserId;
 
   @override
-  _ChatRoomScreenState createState() => _ChatRoomScreenState();
+  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
@@ -36,6 +34,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   String otherUserGender = 'Unknown';
   final AudioPlayer audioPlayer = AudioPlayer();
   int previousDocsLength = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
 
   Future<void> _playReceivedSound() async {
     RingerModeStatus mode = await SoundMode.ringerModeStatus;
@@ -53,12 +57,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     } else {
       print("Silent mode enabled, sound not played.");
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUserData();
   }
 
   Future<void> fetchUserData() async {
@@ -158,11 +156,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 radius: 20,
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 otherUserName,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
@@ -173,7 +171,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ],
         ),
         automaticallyImplyLeading: false,
-        backgroundColor: Color.fromRGBO(180, 74, 26, 1),
+        backgroundColor: const Color.fromRGBO(180, 74, 26, 1),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -203,7 +201,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => LoadingScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const LoadingScreen()),
                 );
                 await _popCompleter.future;
               },
@@ -216,9 +215,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ),
         ],
       ),
-      backgroundColor: Color.fromRGBO(254, 243, 227, 1),
+      backgroundColor: const Color.fromRGBO(254, 243, 227, 1),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/background.png"), // Path to your image
             fit: BoxFit.cover,
@@ -245,7 +244,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               }
 
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Visibility(
+                return const Visibility(
                     visible: false, child: CircularProgressIndicator());
               }
 
@@ -267,13 +266,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       content: Text(
                         '$otherUserName left the room',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16.0,
                         ),
                       ),
 
-                      duration:
-                          Duration(seconds: 3), // Adjust the duration as needed
+                      duration: const Duration(
+                          seconds: 3), // Adjust the duration as needed
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
@@ -302,7 +301,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return Visibility(
+                          return const Visibility(
                               visible: false,
                               child: CircularProgressIndicator());
                         }
@@ -348,8 +347,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                 message: data['message'],
                                 isSameUserAsPrevious: isSameUserAsPrevious,
                               );
-                            }).toList(),
-                            SizedBox(
+                            }),
+                            const SizedBox(
                                 height:
                                     20), // Add some spacing before the avatar
                             Center(
@@ -371,24 +370,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                       radius: 70,
                                     ),
                                   ),
-                                  SizedBox(height: 10),
+                                  const SizedBox(height: 10),
                                   Text(
                                     otherUserName,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 30,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
                                     otherUserGender,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold),
                                   ),
-                                  SizedBox(height: 5),
+                                  const SizedBox(height: 5),
                                   Text(
                                     interestMessage,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 16,
                                         fontStyle: FontStyle.italic),
                                   ),
@@ -432,11 +431,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width - 100,
               ),
-              padding: EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(12.0),
               decoration: BoxDecoration(
                 color: isCurrentUser
-                    ? Color.fromARGB(255, 46, 46, 46)
-                    : Color.fromARGB(255, 216, 216, 216),
+                    ? const Color.fromARGB(255, 46, 46, 46)
+                    : const Color.fromARGB(255, 216, 216, 216),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -464,16 +463,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         children: [
           Expanded(
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 216, 216, 216), // Background color
+                color: const Color.fromARGB(
+                    255, 216, 216, 216), // Background color
                 borderRadius: BorderRadius.circular(25.0), // Rounded corners
               ),
               child: TextField(
                 minLines: 1,
                 maxLines: 3,
                 controller: _controller,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Type your message...',
                   border: InputBorder.none, // Remove default border
                 ),
