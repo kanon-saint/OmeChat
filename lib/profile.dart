@@ -248,7 +248,7 @@ class _ProfilePageState extends State<ProfilePage> {
             fontSize: 16.0,
           ),
         ),
-        duration: Duration(seconds: 2), // Adjust the duration as needed
+        duration: Duration(seconds: 3), // Adjust the duration as needed
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
