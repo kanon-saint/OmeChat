@@ -1,19 +1,15 @@
-// ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, use_build_context_synchronously, library_private_types_in_public_api, use_super_parameters
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool likeBoys = false;
-  bool likeGirls = false;
   String? selectedProfile = 'profile1'; // Default profile selection
   String? gender = 'Male'; // Default gender selection
   final TextEditingController _nameController = TextEditingController();
@@ -69,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
         'profilePicture': selectedProfile,
       });
 
+      // ignore: use_build_context_synchronously
       Navigator.pop(context, user); // Pass the user ID back to the caller
     }
   }
@@ -77,8 +74,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromRGBO(180, 74, 26, 1),
-        title: Text(
+        backgroundColor: const Color.fromRGBO(180, 74, 26, 1),
+        title: const Text(
           'Profile',
           style: TextStyle(color: Colors.white),
         ),
@@ -86,7 +83,7 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Stack(
         children: <Widget>[
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage("assets/background.png"),
                 fit: BoxFit.cover,
@@ -139,13 +136,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 30.0),
-
+                      const SizedBox(height: 30.0),
                       // form input name
                       TextFormField(
                         controller: _nameController,
                         maxLength: 10,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(),
@@ -158,15 +154,14 @@ class _ProfilePageState extends State<ProfilePage> {
                           return null;
                         },
                       ),
-                      SizedBox(height: 10.0),
-
+                      const SizedBox(height: 10.0),
                       // form input for interest
                       TextFormField(
                         controller: _interestController,
                         maxLength: 50,
                         minLines: 1,
                         maxLines: 2,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: 'Separate interest by comma',
                           filled: true,
                           fillColor: Colors.white,
@@ -174,12 +169,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           labelText: 'Interest (Optional)',
                         ),
                       ),
-                      SizedBox(height: 10.0),
-                      Text(
+                      const SizedBox(height: 10.0),
+                      const Text(
                         'Select your gender:',
                         style: TextStyle(fontSize: 18.0),
                       ),
-                      SizedBox(height: 10.0),
+                      const SizedBox(height: 10.0),
                       // for the genders
                       Column(
                         children: <Widget>[
@@ -197,7 +192,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 activeColor: Colors
                                     .black, // Set the active color to black
                               ),
-                              Text('Male')
+                              const Text('Male')
                             ],
                           ),
                           // chosen gender is female
@@ -214,7 +209,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 activeColor: Colors
                                     .black, // Set the active color to black
                               ),
-                              Text('Female')
+                              const Text('Female')
                             ],
                           ),
                           // chosen gender is non binary.
@@ -231,7 +226,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 activeColor: Colors
                                     .black, // Set the active color to black
                               ),
-                              Text('Non-binary')
+                              const Text('Non-binary')
                             ],
                           ),
                         ],
@@ -249,7 +244,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            backgroundColor: Color.fromRGBO(
+                            backgroundColor: const Color.fromRGBO(
                                 180, 74, 26, 1), // Background color
                             shadowColor: Colors.black, // Shadow color
                             elevation: 5, // Elevation
@@ -257,10 +252,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               borderRadius:
                                   BorderRadius.circular(40), // Rounded corners
                             ),
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 20, vertical: 15), // Padding
                           ),
-                          child: Text(
+                          child: const Text(
                             'Save Changes',
                             style: TextStyle(
                               fontSize: 16, // Font size
@@ -284,14 +279,14 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _showSaveConfirmation() async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
+        content: const Text(
           'Changes Saved',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16.0,
           ),
         ),
-        duration: Duration(seconds: 3), // Adjust the duration as needed
+        duration: const Duration(seconds: 3), // Adjust the duration as needed
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
@@ -306,8 +301,8 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select Profile Picture'),
-          content: Container(
+          title: const Text('Select Profile Picture'),
+          content: SizedBox(
             width: double.maxFinite,
             child: GridView.count(
               crossAxisCount: 2,
