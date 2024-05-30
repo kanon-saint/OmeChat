@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:sound_mode/sound_mode.dart';
 import 'package:sound_mode/utils/ringer_mode_statuses.dart';
 import 'loading_screen.dart';
 import 'services/room_operations.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:sound_mode/sound_mode.dart';
 
 Completer<void> _popCompleter = Completer<void>();
 
@@ -34,11 +35,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   String otherUserGender = 'Unknown';
   final AudioPlayer audioPlayer = AudioPlayer();
   int previousDocsLength = 0;
+  late StreamSubscription<ConnectivityResult> _subscription;
+  ConnectivityResult _connectivityResult = ConnectivityResult.wifi;
 
   @override
   void initState() {
     super.initState();
+    _subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      setState(() {
+        _connectivityResult = result;
+      });
+    });
     fetchUserData();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    audioPlayer.dispose();
+    super.dispose();
   }
 
   Future<void> _playReceivedSound() async {
@@ -148,7 +165,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: Colors.black,
-                  width: 1.0,
                 ),
               ),
               child: CircleAvatar(
@@ -156,7 +172,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 radius: 20,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 16.0),
             Expanded(
               child: Text(
                 otherUserName,
@@ -188,7 +204,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.red,
               ),
-              child: const Text('STOP'),
+              child: const Text('STOP',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
           Padding(
@@ -210,10 +227,30 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.green,
               ),
-              child: const Text('NEXT'),
+              // make bold
+              child: const Text('NEXT',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
+        bottom: _connectivityResult == ConnectivityResult.none
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(23.0),
+                child: Container(
+                  color: Colors.red,
+                  child: const Center(
+                    child: Text(
+                      'No internet connection',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : null,
       ),
       backgroundColor: const Color.fromRGBO(254, 243, 227, 1),
       body: Container(
@@ -255,12 +292,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       roomData['occupant2'] == widget.currentUserId);
 
               bool connectionEstablished = userInRoom &&
-                  roomData != null &&
                   (roomData['occupant1'] == widget.occupants[0] &&
                       roomData['occupant2'] == widget.occupants[1]);
 
               if (!connectionEstablished && userInRoom) {
-                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -272,7 +308,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       ),
 
                       duration: const Duration(
-                          seconds: 3), // Adjust the duration as needed
+                          seconds: 3), // Duration of the SnackBar
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
