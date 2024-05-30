@@ -189,6 +189,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       final usersCollection = FirebaseFirestore.instance.collection('users');
 
       // Store the user ID since either the collection doesn't exist or it has less than two documents
+      await Future.delayed(const Duration(seconds: 3));
       await usersCollection.doc(userId).set({});
       print('User ID $userId stored to Firestore successfully.');
     } catch (error) {
