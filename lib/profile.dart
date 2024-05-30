@@ -25,26 +25,28 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    fetchData(); 
+    fetchData();
   }
 
   // fetch user data from firestore
   Future<void> fetchData() async {
-    User? user = FirebaseAuth.instance.currentUser; // Retrieves the currently authenticated user
+    User? user = FirebaseAuth
+        .instance.currentUser; // Retrieves the currently authenticated user
     if (user != null) {
-      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore // hold document data that maps key and value
-          .instance
-          .collection('accounts') // access the account
-          .doc(user.uid) // retrieve user id
-          .get(); // fetch those from firestore
+      DocumentSnapshot<Map<String, dynamic>> snapshot =
+          await FirebaseFirestore // hold document data that maps key and value
+              .instance
+              .collection('accounts') // access the account
+              .doc(user.uid) // retrieve user id
+              .get(); // fetch those from firestore
 
       // if already exists, access the value, just load
       if (snapshot.exists) {
         setState(() {
-          selectedProfile = snapshot['profilePicture'];
-          _nameController.text = snapshot['name'] ?? '';
-          _interestController.text = snapshot['interests'] ?? '';
           gender = snapshot['gender'];
+          _interestController.text = snapshot['interest'] ?? '';
+          _nameController.text = snapshot['name'];
+          selectedProfile = snapshot['profilePicture'];
         });
       }
     }
@@ -58,13 +60,13 @@ class _ProfilePageState extends State<ProfilePage> {
           .collection('accounts')
           .doc(user.uid)
           .set({
-        'profilePicture': selectedProfile,
-        'name': _nameController.text,
-        'interests': _interestController
+        'gender': gender,
+        'interest': _interestController
                 .text.isNotEmpty // Check if interests is not empty
             ? _interestController.text
             : null,
-        'gender': gender,
+        'name': _nameController.text,
+        'profilePicture': selectedProfile,
       });
 
       Navigator.pop(context, user); // Pass the user ID back to the caller
@@ -178,10 +180,10 @@ class _ProfilePageState extends State<ProfilePage> {
                         style: TextStyle(fontSize: 18.0),
                       ),
                       SizedBox(height: 10.0),
-                     // for the genders
+                      // for the genders
                       Column(
                         children: <Widget>[
-                           // chosen gender is male
+                          // chosen gender is male
                           Row(
                             children: [
                               Radio<String>(
@@ -198,7 +200,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               Text('Male')
                             ],
                           ),
-                           // chosen gender is female
+                          // chosen gender is female
                           Row(
                             children: [
                               Radio<String>(
@@ -215,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               Text('Female')
                             ],
                           ),
-                           // chosen gender is non binary.
+                          // chosen gender is non binary.
                           Row(
                             children: [
                               Radio<String>(

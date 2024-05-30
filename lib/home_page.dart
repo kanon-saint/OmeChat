@@ -94,7 +94,8 @@ class _HomePageState extends State<HomePage>
             .set({
           'gender': 'Unknown',
           'interest': '',
-          'name': 'Anonymous',
+          'name': '',
+          'profilePicture': 'profile1',
         });
       }
     } catch (e) {
