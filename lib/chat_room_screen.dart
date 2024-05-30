@@ -249,7 +249,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 WidgetsBinding.instance!.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('User left the room.'),
+                      content: Text(
+                        '$otherUserName left the room',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16.0,
+                        ),
+                      ),
+
+                      duration:
+                          Duration(seconds: 2), // Adjust the duration as needed
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
                     ),
                   );
                 });

@@ -225,7 +225,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             await _showSaveConfirmation();
                           }
                         },
-                        child: Text('Save'),
+                        child: Text('Save Changes'),
                       ),
                     ],
                   ),
@@ -239,21 +239,21 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _showSaveConfirmation() async {
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Changes Saved'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Changes Saved',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 16.0,
+          ),
+        ),
+        duration: Duration(seconds: 2), // Adjust the duration as needed
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
     );
   }
 
