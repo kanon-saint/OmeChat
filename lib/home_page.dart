@@ -93,8 +93,8 @@ class _HomePageState extends State<HomePage>
             .doc(userId)
             .set({
           'gender': 'Unknown',
-          'interest': '',
-          'name': '',
+          'interests': '',
+          'name': 'Anonymous',
           'profilePicture': 'profile1',
         });
       }

@@ -40,8 +40,9 @@ class _ProfilePageState extends State<ProfilePage> {
       if (snapshot.exists) {
         setState(() {
           gender = snapshot['gender'];
-          _interestController.text = snapshot['interest'] ?? '';
-          _nameController.text = snapshot['name'];
+          _interestController.text = snapshot['interests'] ?? '';
+          _nameController.text =
+              snapshot['name'] == 'Anonymous' ? '' : snapshot['name'];
           selectedProfile = snapshot['profilePicture'];
         });
       }
@@ -57,7 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
           .doc(user.uid)
           .set({
         'gender': gender,
-        'interest': _interestController
+        'interests': _interestController
                 .text.isNotEmpty // Check if interests is not empty
             ? _interestController.text
             : null,
