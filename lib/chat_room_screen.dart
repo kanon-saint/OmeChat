@@ -85,15 +85,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       print('Current User Data: ${currentUserSnapshot.data()}');
 
 // Extracting interests from the user data
-      List<String> otherUserInterests =
-          ((otherUserSnapshot.data()?['interests'] ?? '') as String)
-              .toLowerCase()
+      List<String>? otherUserInterests =
+          (otherUserSnapshot.data()?['interests'] as String?)
+              ?.toLowerCase()
               .split(',')
               .map((interest) => interest.trim())
               .toList();
-      List<String> currentUserInterests =
-          ((currentUserSnapshot.data()?['interests'] ?? '') as String)
-              .toLowerCase()
+
+      List<String>? currentUserInterests =
+          (currentUserSnapshot.data()?['interests'] as String?)
+              ?.toLowerCase()
               .split(',')
               .map((interest) => interest.trim())
               .toList();
@@ -103,13 +104,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
 // Check for common interests
       List<String> commonInterests = [];
-      for (String interest in currentUserInterests) {
-        if (otherUserInterests.contains(interest)) {
-          commonInterests.add(interest);
+      if (currentUserInterests != null && otherUserInterests != null) {
+        for (String interest in currentUserInterests) {
+          if (otherUserInterests.contains(interest)) {
+            commonInterests.add(interest);
+          }
         }
       }
 
-      print('Room common interests: $commonInterests');
+      print('Common Interests: $commonInterests');
 
       setState(() {
         otherUserName = otherUserSnapshot.data()?['name'] ?? 'Anonymous';

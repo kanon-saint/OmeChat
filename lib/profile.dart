@@ -56,7 +56,9 @@ class _ProfilePageState extends State<ProfilePage> {
           .set({
         'profilePicture': selectedProfile,
         'name': _nameController.text,
-        'interests': _interestController.text,
+        'interests': (_interestController.text == true)
+            ? _interestController.text
+            : null,
         'gender': gender,
       });
 
