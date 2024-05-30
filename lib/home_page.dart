@@ -243,7 +243,7 @@ class _HomePageState extends State<HomePage>
             ),
           ),
           Positioned(
-            bottom: 150,
+            bottom: 175,
             left: 0,
             right: 0,
             child: Center(
