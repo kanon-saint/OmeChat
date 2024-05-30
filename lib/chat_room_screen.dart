@@ -3,9 +3,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sound_mode/utils/ringer_mode_statuses.dart';
 import 'loading_screen.dart';
 import 'services/room_operations.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:sound_mode/sound_mode.dart';
 
 Completer<void> _popCompleter = Completer<void>();
 
@@ -35,12 +37,22 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final AudioPlayer audioPlayer = AudioPlayer();
   int previousDocsLength = 0;
 
-  Future<void> _playreceivedSound() async {
-    await audioPlayer.play(AssetSource('receive.mp3'));
+  Future<void> _playReceivedSound() async {
+    RingerModeStatus mode = await SoundMode.ringerModeStatus;
+    if (mode == RingerModeStatus.normal) {
+      await audioPlayer.play(AssetSource('receive.mp3'));
+    } else {
+      print("Silent mode enabled, sound not played.");
+    }
   }
 
   Future<void> _playSendSound() async {
-    await audioPlayer.play(AssetSource('send.mp3'));
+    RingerModeStatus mode = await SoundMode.ringerModeStatus;
+    if (mode == RingerModeStatus.normal) {
+      await audioPlayer.play(AssetSource('send.mp3'));
+    } else {
+      print("Silent mode enabled, sound not played.");
+    }
   }
 
   @override
@@ -306,7 +318,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                             docs.length > previousDocsLength) {
                           // Play received sound when new message is detected
                           if (docs.first['userId'] != widget.currentUserId) {
-                            _playreceivedSound();
+                            _playReceivedSound();
                           }
                           previousDocsLength = docs.length;
                         }
@@ -374,14 +386,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                   Text(
                                     otherUserGender,
                                     style: TextStyle(
-                                        fontSize: 15,
-                                        fontStyle: FontStyle.italic),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   SizedBox(height: 5),
                                   Text(
                                     interestMessage,
                                     style: TextStyle(
-                                        fontSize: 15,
+                                        fontSize: 16,
                                         fontStyle: FontStyle.italic),
                                   ),
                                 ],
