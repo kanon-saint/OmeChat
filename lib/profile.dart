@@ -21,21 +21,24 @@ class _ProfilePageState extends State<ProfilePage> {
 
   final _formKey = GlobalKey<FormState>();
 
+  // Fetch user's profile data when the page initializes
   @override
   void initState() {
     super.initState();
-    fetchData(); // Fetch user's profile data when the page initializes
+    fetchData(); 
   }
 
+  // fetch user data from firestore
   Future<void> fetchData() async {
-    User? user = FirebaseAuth.instance.currentUser;
+    User? user = FirebaseAuth.instance.currentUser; // Retrieves the currently authenticated user
     if (user != null) {
-      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore // hold document data that maps key and value
           .instance
-          .collection('accounts')
-          .doc(user.uid)
-          .get();
+          .collection('accounts') // access the account
+          .doc(user.uid) // retrieve user id
+          .get(); // fetch those from firestore
 
+      // if already exists, access the value, just load
       if (snapshot.exists) {
         setState(() {
           selectedProfile = snapshot['profilePicture'];
@@ -47,6 +50,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Access and update
   Future<void> _saveProfileData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -104,7 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       GestureDetector(
                         onTap: () async {
                           final selectedProfileTemp =
-                              await _showProfileSelectionDialog();
+                              await _showProfileSelectionDialog(); // options to change profile pic
                           if (selectedProfileTemp != null) {
                             setState(() {
                               selectedProfile = selectedProfileTemp;
@@ -123,6 +127,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 width: 1.0, // Set the border width here
                               ),
                             ),
+                            // Source of the image choices
                             child: CircleAvatar(
                               backgroundImage: NetworkImage(
                                 'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/$selectedProfile.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
@@ -133,6 +138,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       SizedBox(height: 30.0),
+
+                      // form input name
                       TextFormField(
                         controller: _nameController,
                         maxLength: 10,
@@ -150,6 +157,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                       ),
                       SizedBox(height: 10.0),
+
+                      // form input for interest
                       TextFormField(
                         controller: _interestController,
                         maxLength: 50,
@@ -169,8 +178,10 @@ class _ProfilePageState extends State<ProfilePage> {
                         style: TextStyle(fontSize: 18.0),
                       ),
                       SizedBox(height: 10.0),
+                     // for the genders
                       Column(
                         children: <Widget>[
+                           // chosen gender is male
                           Row(
                             children: [
                               Radio<String>(
@@ -187,6 +198,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               Text('Male')
                             ],
                           ),
+                           // chosen gender is female
                           Row(
                             children: [
                               Radio<String>(
@@ -203,6 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               Text('Female')
                             ],
                           ),
+                           // chosen gender is non binary.
                           Row(
                             children: [
                               Radio<String>(
@@ -221,6 +234,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
+                      // save changes button properties
                       Align(
                         alignment: Alignment
                             .centerRight, // Aligns the button to the right
@@ -264,6 +278,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // display text again to the home_page
   Future<void> _showSaveConfirmation() async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -283,6 +298,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // shows the available profile pictures
   Future<String?> _showProfileSelectionDialog() async {
     return await showDialog<String>(
       context: context,
@@ -305,6 +321,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // enables the profile to be clickable and this is its properties
   Widget _buildProfileOption(String profileName) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -322,6 +339,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           child: CircleAvatar(
+            // displays the pictures
             backgroundImage: NetworkImage(
               'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/$profileName.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
             ),
