@@ -218,14 +218,37 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                            await _saveProfileData();
-                            await _showSaveConfirmation();
-                          }
-                        },
-                        child: Text('Save Changes'),
+                      Align(
+                        alignment: Alignment
+                            .centerRight, // Aligns the button to the right
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate()) {
+                              await _saveProfileData();
+                              await _showSaveConfirmation();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Color.fromRGBO(
+                                180, 74, 26, 1), // Background color
+                            shadowColor: Colors.black, // Shadow color
+                            elevation: 5, // Elevation
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(40), // Rounded corners
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 15), // Padding
+                          ),
+                          child: Text(
+                            'Save Changes',
+                            style: TextStyle(
+                              fontSize: 16, // Font size
+                              fontWeight: FontWeight.bold, // Font weight
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
