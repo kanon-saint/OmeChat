@@ -100,7 +100,14 @@ class _HomePageState extends State<HomePage>
         });
         print('Fetched user data successfully');
       } else {
-        print('No such document!');
+        await FirebaseFirestore.instance
+            .collection('accounts')
+            .doc(userId)
+            .set({
+          'gender': 'Unknown',
+          'interest': '',
+          'name': 'Anonymous',
+        });
       }
     } catch (e) {
       print('Error fetching user data: $e');

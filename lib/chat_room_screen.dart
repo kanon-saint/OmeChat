@@ -98,6 +98,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       }
 
       print('Room common interests: $commonInterests');
+      print(commonInterests.length);
+
+      if (commonInterests[0] == '') {
+        var makeNull = null;
+        commonInterests = makeNull;
+      }
+      print(commonInterests.length);
 
       setState(() {
         otherUserName = otherUserSnapshot.data()?['name'] ?? 'Anonymous';
