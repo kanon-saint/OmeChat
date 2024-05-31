@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'services/profile_operations.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -21,54 +20,20 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    fetchData();
+    fetchData(
+        _nameController, _interestController, setGender, setSelectedProfile);
   }
 
-  // fetch user data from firestore
-  Future<void> fetchData() async {
-    User? user = FirebaseAuth
-        .instance.currentUser; // Retrieves the currently authenticated user
-    if (user != null) {
-      DocumentSnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore // hold document data that maps key and value
-              .instance
-              .collection('accounts') // access the account
-              .doc(user.uid) // retrieve user id
-              .get(); // fetch those from firestore
-
-      // if already exists, access the value, just load
-      if (snapshot.exists) {
-        setState(() {
-          gender = snapshot['gender'];
-          _interestController.text = snapshot['interests'] ?? '';
-          _nameController.text =
-              snapshot['name'] == 'Anonymous' ? '' : snapshot['name'];
-          selectedProfile = snapshot['profilePicture'];
-        });
-      }
-    }
+  void setGender(String? value) {
+    setState(() {
+      gender = value;
+    });
   }
 
-  // Access and update
-  Future<void> _saveProfileData() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await FirebaseFirestore.instance
-          .collection('accounts')
-          .doc(user.uid)
-          .set({
-        'gender': gender,
-        'interests': _interestController
-                .text.isNotEmpty // Check if interests is not empty
-            ? _interestController.text
-            : null,
-        'name': _nameController.text,
-        'profilePicture': selectedProfile,
-      });
-
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context, user); // Pass the user ID back to the caller
-    }
+  void setSelectedProfile(String? value) {
+    setState(() {
+      selectedProfile = value;
+    });
   }
 
   @override
@@ -108,7 +73,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       GestureDetector(
                         onTap: () async {
                           final selectedProfileTemp =
-                              await _showProfileSelectionDialog(); // options to change profile pic
+                              await showProfileSelectionDialog(
+                                  context); // options to change profile pic
                           if (selectedProfileTemp != null) {
                             setState(() {
                               selectedProfile = selectedProfileTemp;
@@ -256,8 +222,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                              await _saveProfileData();
-                              await _showSaveConfirmation();
+                              await saveProfileData(context, _nameController,
+                                  _interestController, gender, selectedProfile);
+                              await showSaveConfirmation(context);
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -289,78 +256,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // display text again to the home_page
-  Future<void> _showSaveConfirmation() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Changes Saved',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16.0,
-          ),
-        ),
-        duration: const Duration(seconds: 3), // Adjust the duration as needed
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-      ),
-    );
-  }
-
-  // shows the available profile pictures
-  Future<String?> _showProfileSelectionDialog() async {
-    return await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select Profile Picture'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              children: List.generate(
-                8,
-                (index) => _buildProfileOption('profile${index + 1}'),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // enables the profile to be clickable and this is its properties
-  Widget _buildProfileOption(String profileName) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.pop(context,
-              profileName); // Pass the selected profile name back to the dialog caller
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.black,
-              width: 1.0,
-            ),
-          ),
-          child: CircleAvatar(
-            // displays the pictures
-            backgroundImage: NetworkImage(
-              'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/$profileName.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011',
-            ),
-            radius: 40,
-          ),
-        ),
       ),
     );
   }

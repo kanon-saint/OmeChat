@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'loading_screen.dart';
 import 'profile.dart';
+import 'services/home_operations.dart';
 
 class HomePage extends StatefulWidget {
   final User? user;
@@ -35,13 +34,19 @@ class _HomePageState extends State<HomePage>
         .listen((ConnectivityResult result) {
       setState(() {
         _connectivityResult = result;
-        _updateShowButtonState(); // Update the show button state whenever connectivity changes
+        updateShowButtonState(
+            _controller,
+            _connectivityResult,
+            _animationCompleted,
+            setShowButton); // Update the show button state whenever connectivity changes
       });
     });
     if (widget.user != null) {
-      _fetchUserData(widget.user!.uid);
+      fetchUserData(widget.user!.uid, setUserName, setUserProfilePicture);
     } else {
-      _signInAnonymouslyAndFetchUserData();
+      signInAnonymouslyAndFetchUserData(_auth, (String userId) {
+        fetchUserData(userId, setUserName, setUserProfilePicture);
+      });
     }
 
     _controller = AnimationController(
@@ -52,7 +57,11 @@ class _HomePageState extends State<HomePage>
           setState(() {
             _animationCompleted = true;
           });
-          _updateShowButtonState(); // Update the show button state when animation completes
+          updateShowButtonState(
+              _controller,
+              _connectivityResult,
+              _animationCompleted,
+              setShowButton); // Update the show button state when animation completes
         }
       });
 
@@ -66,64 +75,22 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
-  void _updateShowButtonState() {
+  void setShowButton(bool value) {
     setState(() {
-      _showButton =
-          _animationCompleted && _connectivityResult != ConnectivityResult.none;
+      _showButton = value;
     });
   }
 
-  Future<void> _fetchUserData(String userId) async {
-    try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('accounts')
-          .doc(userId)
-          .get();
-
-      if (userDoc.exists) {
-        setState(() {
-          userName = userDoc['name'] ?? 'Anonymous';
-          userProfilePicture =
-              'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/${userDoc['profilePicture']}.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011';
-        });
-        print('Fetched user data successfully');
-      } else {
-        await FirebaseFirestore.instance
-            .collection('accounts')
-            .doc(userId)
-            .set({
-          'gender': 'Unknown',
-          'interests': '',
-          'name': 'Anonymous',
-          'profilePicture': 'profile1',
-        });
-      }
-    } catch (e) {
-      print('Error fetching user data: $e');
-    }
+  void setUserName(String name) {
+    setState(() {
+      userName = name;
+    });
   }
 
-  Future<void> _signInAnonymouslyAndFetchUserData() async {
-    try {
-      UserCredential userCredential = await _auth.signInAnonymously();
-      User? user = userCredential.user;
-      if (user != null) {
-        _fetchUserData(user.uid);
-      }
-    } catch (e) {
-      print('Error signing in anonymously: $e');
-    }
-  }
-
-  Future<void> _findPair() async {
-    try {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const LoadingScreen()),
-      );
-    } catch (e) {
-      print('Error finding pair: $e');
-    }
+  void setUserProfilePicture(String profilePicture) {
+    setState(() {
+      userProfilePicture = profilePicture;
+    });
   }
 
   @override
@@ -144,7 +111,8 @@ class _HomePageState extends State<HomePage>
                       );
                       if (user != null) {
                         setState(() {
-                          _fetchUserData(user.uid);
+                          fetchUserData(
+                              user.uid, setUserName, setUserProfilePicture);
                         });
                       }
                     },
@@ -254,7 +222,7 @@ class _HomePageState extends State<HomePage>
                 child: Visibility(
                   visible: _showButton,
                   child: ElevatedButton(
-                    onPressed: _findPair,
+                    onPressed: () => findPair(context),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.green,

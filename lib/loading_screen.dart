@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'chat_room_screen.dart';
+import 'services/loading_operations.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -40,7 +38,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     super.initState();
     _pageControllerStream = StreamController<int>();
     _startTimer();
-    printCurrentUserUID(); // Print current user's UID
+    printCurrentUserUID(context); // Print current user's UID
     _subscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
@@ -166,111 +164,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> printCurrentUserUID() async {
-    // Get current user
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // User is signed in
-      String userId = user.uid;
-
-      // Store current user's ID to Firestore
-      await storeUserIDToFirestore(userId);
-
-      // Navigate to chat room if user is present in any room
-      navigateToChatRoom(userId);
-    } else {
-      // No user is signed in
-      print('No user signed in.');
-    }
-  }
-
-  Future<void> storeUserIDToFirestore(String userId) async {
-    try {
-      // Check if the "users" collection exists
-      final usersCollection = FirebaseFirestore.instance.collection('users');
-
-      // Store the user ID since either the collection doesn't exist or it has less than two documents
-      await Future.delayed(const Duration(seconds: 3));
-      await usersCollection.doc(userId).set({});
-      print('User ID $userId stored to Firestore successfully.');
-    } catch (error) {
-      print('Failed to store user ID to Firestore: $error');
-    }
-  }
-
-  void navigateToChatRoom(String userId) {
-    // Use StreamBuilder to continuously monitor the rooms collection for the user's presence
-    FirebaseFirestore.instance
-        .collection('rooms')
-        .where('occupant1', isEqualTo: userId)
-        .snapshots()
-        .listen((querySnapshot1) {
-      if (querySnapshot1.docs.isNotEmpty) {
-        // User is present in a room, navigate to chat room
-        String roomId = querySnapshot1.docs.first.id;
-        List<String> occupants = [
-          querySnapshot1.docs.first['occupant1'],
-          querySnapshot1.docs.first['occupant2']
-        ];
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatRoomScreen(
-              roomId: roomId,
-              occupants: occupants,
-              currentUserId: userId, // Pass the current user's ID
-            ),
-          ),
-        );
-        return;
-      }
-
-      FirebaseFirestore.instance
-          .collection('rooms')
-          .where('occupant2', isEqualTo: userId)
-          .snapshots()
-          .listen((querySnapshot2) {
-        if (querySnapshot2.docs.isNotEmpty) {
-          // User is present in a room, navigate to chat room
-          String roomId = querySnapshot2.docs.first.id;
-          List<String> occupants = [
-            querySnapshot2.docs.first['occupant1'],
-            querySnapshot2.docs.first['occupant2']
-          ];
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatRoomScreen(
-                roomId: roomId,
-                occupants: occupants,
-                currentUserId: userId, // Pass the current user's ID
-              ),
-            ),
-          );
-        }
-      });
-    });
-  }
-
-  Future<void> deleteUserFromFirestore() async {
-    // Get current user
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // User is signed in
-      String userId = user.uid;
-      // Delete user from "users" collection
-      try {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .delete();
-        print('User $userId deleted from "users" collection.');
-      } catch (error) {
-        print('Failed to delete user $userId from "users" collection: $error');
-      }
-    }
   }
 
   void _cancelFindPair() {
