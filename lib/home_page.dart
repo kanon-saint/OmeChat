@@ -260,6 +260,8 @@ class _HomePageState extends State<HomePage>
                       backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0),
+                        side: const BorderSide(
+                            color: Color.fromARGB(255, 29, 94, 19), width: 1.0),
                       ),
                     ),
                     child: const Center(

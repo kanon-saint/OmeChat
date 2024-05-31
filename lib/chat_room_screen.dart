@@ -202,7 +202,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor: Colors.red,
+                backgroundColor: const Color.fromRGBO(181, 16, 24, 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  side: const BorderSide(
+                      color: Color.fromARGB(255, 124, 3, 3), width: 1.0),
+                ),
               ),
               child: const Text('STOP',
                   style: TextStyle(fontWeight: FontWeight.bold)),
@@ -226,6 +231,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.green,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  side: const BorderSide(
+                      color: Color.fromARGB(255, 29, 94, 19), width: 1.0),
+                ),
               ),
               // make bold
               child: const Text('NEXT',

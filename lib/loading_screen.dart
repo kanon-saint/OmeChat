@@ -148,7 +148,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0),
                         side: const BorderSide(
-                            color: Color.fromARGB(255, 124, 3, 3), width: 2.0),
+                            color: Color.fromARGB(255, 124, 3, 3), width: 1.0),
                       ),
                     ),
                     child: const Text(

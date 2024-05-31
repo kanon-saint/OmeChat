@@ -230,6 +230,23 @@ class _ProfilePageState extends State<ProfilePage> {
                               const Text('Non-binary')
                             ],
                           ),
+                          // chosen gender prefer not to say.
+                          Row(
+                            children: [
+                              Radio<String>(
+                                value: 'Unknown',
+                                groupValue: gender,
+                                onChanged: (value) {
+                                  setState(() {
+                                    gender = value;
+                                  });
+                                },
+                                activeColor: Colors
+                                    .black, // Set the active color to black
+                              ),
+                              const Text('Prefer not to say')
+                            ],
+                          ),
                         ],
                       ),
                       // save changes button properties
@@ -247,11 +264,11 @@ class _ProfilePageState extends State<ProfilePage> {
                             foregroundColor: Colors.white,
                             backgroundColor: const Color.fromRGBO(
                                 180, 74, 26, 1), // Background color
-                            shadowColor: Colors.black, // Shadow color
-                            elevation: 5, // Elevation
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(40), // Rounded corners
+                              borderRadius: BorderRadius.circular(30),
+                              side: const BorderSide(
+                                  color: Color.fromRGBO(103, 45, 18, 1),
+                                  width: 1.0), // Rounded corners
                             ),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 20, vertical: 15), // Padding
