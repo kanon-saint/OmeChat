@@ -144,9 +144,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     onPressed: _cancelFindPair,
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      backgroundColor: Colors.red,
+                      backgroundColor: const Color.fromRGBO(181, 16, 24, 1),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0),
+                        side: const BorderSide(
+                            color: Color.fromARGB(255, 124, 3, 3), width: 2.0),
                       ),
                     ),
                     child: const Text(
