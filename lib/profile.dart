@@ -36,7 +36,7 @@ class _ProfilePageState extends State<ProfilePage> {
               .doc(user.uid) // retrieve user id
               .get(); // fetch those from firestore
 
-      // if already exists, access the value, just load
+      // if already exists, update the data fetched from firestore
       if (snapshot.exists) {
         setState(() {
           gender = snapshot['gender'];
@@ -105,6 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      // select profile
                       GestureDetector(
                         onTap: () async {
                           final selectedProfileTemp =
@@ -138,6 +139,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       const SizedBox(height: 30.0),
+
                       // form input name
                       TextFormField(
                         controller: _nameController,
@@ -156,6 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                       ),
                       const SizedBox(height: 10.0),
+
                       // form input for interest
                       TextFormField(
                         controller: _interestController,
@@ -175,7 +178,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         'Select your gender:',
                         style: TextStyle(fontSize: 18.0),
                       ),
+
                       const SizedBox(height: 10.0),
+
                       // for the genders
                       Column(
                         children: <Widget>[
@@ -196,6 +201,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               const Text('Male')
                             ],
                           ),
+
                           // chosen gender is female
                           Row(
                             children: [
@@ -213,6 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               const Text('Female')
                             ],
                           ),
+
                           // chosen gender is non binary.
                           Row(
                             children: [
@@ -230,6 +237,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               const Text('Non-binary')
                             ],
                           ),
+
                           // chosen gender prefer not to say.
                           Row(
                             children: [
@@ -249,6 +257,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
+
                       // save changes button properties
                       Align(
                         alignment: Alignment
@@ -293,7 +302,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // display text again to the home_page
+  // informs the user that changes has been made
   Future<void> _showSaveConfirmation() async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -336,7 +345,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // enables the profile to be clickable and this is its properties
+  // enables the profile to be clickable, generate selectable profile
   Widget _buildProfileOption(String profileName) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
