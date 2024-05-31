@@ -143,12 +143,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       });
     } else {
       setState(() {
-        otherUserName = otherUserSnapshot.data()?['name'] ?? 'Anonymous';
-        otherUserProfilePic = otherUserSnapshot.data()?['profilePicture'] !=
-                null
-            ? 'https://firebasestorage.googleapis.com/v0/b/omechat-7c75c.appspot.com/o/${otherUserSnapshot.data()?['profilePicture']}.png?alt=media&token=0ddebb1d-56fa-42c9-be1e-5c09b8a55011'
-            : otherUserProfilePic;
-        otherUserGender = otherUserSnapshot.data()?['gender'];
+        otherUserName = 'Anonymous';
+        otherUserProfilePic = otherUserProfilePic;
+        otherUserGender = otherUserGender;
       });
       print('User data not found.');
     }
