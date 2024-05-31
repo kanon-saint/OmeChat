@@ -73,18 +73,6 @@ class _HomePageState extends State<HomePage>
     });
   }
 
-  Future<void> _signInAnonymouslyAndFetchUserData() async {
-    try {
-      UserCredential userCredential = await _auth.signInAnonymously();
-      User? user = userCredential.user;
-      if (user != null) {
-        _fetchUserData(user.uid);
-      }
-    } catch (e) {
-      print('Error during anonymous sign-in: $e');
-    }
-  }
-
   Future<void> _fetchUserData(String userId) async {
     try {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
@@ -105,8 +93,9 @@ class _HomePageState extends State<HomePage>
             .doc(userId)
             .set({
           'gender': 'Unknown',
-          'interest': '',
+          'interests': '',
           'name': 'Anonymous',
+          'profilePicture': 'profile1',
         });
       }
     } catch (e) {
@@ -114,24 +103,26 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  Future<void> _signInAnonymously() async {
+  Future<void> _signInAnonymouslyAndFetchUserData() async {
     try {
-      final userCredential = await _auth.signInAnonymously();
-      if (userCredential != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoadingScreen()),
-        );
+      UserCredential userCredential = await _auth.signInAnonymously();
+      User? user = userCredential.user;
+      if (user != null) {
+        _fetchUserData(user.uid);
       }
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Sign-in failed: ${e.message}'),
-        ),
+    } catch (e) {
+      print('Error signing in anonymously: $e');
+    }
+  }
+
+  Future<void> _findPair() async {
+    try {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoadingScreen()),
       );
     } catch (e) {
-      print("Unknown error occurred:");
-      print(e.toString());
+      print('Error finding pair: $e');
     }
   }
 
@@ -157,34 +148,31 @@ class _HomePageState extends State<HomePage>
                         });
                       }
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        children: [
-                          Text(
-                            userName,
-                            style: const TextStyle(
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                    child: Row(
+                      children: [
+                        Text(
+                          userName,
+                          style: const TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
-                          const SizedBox(width: 16.0),
-                          Container(
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: Colors.black,
-                                width: 1.0,
                               ),
                             ),
                             child: CircleAvatar(
                               backgroundImage: NetworkImage(userProfilePicture),
-                              radius: 20,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ]
@@ -255,23 +243,23 @@ class _HomePageState extends State<HomePage>
               ),
             ),
           ),
-          if (_showButton)
-            Positioned(
-              bottom: 175,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: SizedBox(
-                  width: 200,
-                  height: 50,
+          Positioned(
+            bottom: 175,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: SizedBox(
+                width: 200,
+                height: 50,
+                child: Visibility(
+                  visible: _showButton,
                   child: ElevatedButton(
-                    onPressed: _signInAnonymously,
+                    onPressed: _findPair,
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.green,
-                      elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(30.0),
                       ),
                     ),
                     child: const Center(
@@ -289,6 +277,7 @@ class _HomePageState extends State<HomePage>
                 ),
               ),
             ),
+          )
         ],
       ),
     );
